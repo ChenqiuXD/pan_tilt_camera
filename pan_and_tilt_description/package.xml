@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pan_and_tilt_description</name>
+  <version>0.0.0</version>
+  <description>The pan_and_tilt_description package</description>
+
+  <maintainer email="rdaneel@todo.todo">rdaneel</maintainer>
+
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>gazebo_ros</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>spawn_robot_tools_pkg</build_depend>
+  <build_depend>person_sim</build_depend>
+  <build_export_depend>gazebo_ros</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>spawn_robot_tools_pkg</build_export_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>spawn_robot_tools_pkg</exec_depend>
+  <exec_depend>person_sim</exec_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>
