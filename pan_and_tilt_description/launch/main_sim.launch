@@ -7,7 +7,7 @@
   <arg name="pause" default="false"/>
   <arg name="verbose" default="true"/>
 
-  <!--<include file="$(find gazebo_ros)/launch/empty_world.launch">
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find pan_and_tilt_description)/worlds/light.world"/>
     <arg name="debug" value="$(arg debug)" />
     <arg name="gui" value="$(arg gui)" />
@@ -15,9 +15,7 @@
     <arg name="use_sim_time" value="true"/>
     <arg name="headless" value="$(arg headless)"/>
     <arg name="verbose" value="$(arg verbose)"/>
-  </include>-->
-
-  <node name="rviz" pkg="rviz" type="rviz"/>
+  </include>
 
   <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch"/>
   <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch"/> 

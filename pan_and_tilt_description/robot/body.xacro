@@ -84,7 +84,7 @@
 	    
     <link name="pitch_link">
         <inertial>
-            <origin xyz="0 0 ${BASE_RADIUS*7/5}" rpy="0 ${PI/2} 0"/>
+            <origin xyz="0 0 0" rpy="0 ${PI/2} 0"/>
             <mass value="${joints_mass}" />
             <cylinder_inertia 
                 m="${joints_mass}" 
@@ -98,7 +98,7 @@
             </geometry>
         </collision>-->
         <visual>
-            <origin xyz="0 0 ${BASE_RADIUS*7/5}" rpy="0 ${PI/2} 0"/>
+            <origin xyz="0 0 0" rpy="0 ${PI/2} 0"/>
             <geometry>
                 <cylinder radius="${BASE_RADIUS/5*2}" length="${BASE_RADIUS}"/>
             </geometry>
@@ -116,7 +116,7 @@
 	<joint name="pitch_joint" type="revolute">
 		<parent link="yaw_link"/>
 		<child link="pitch_link"/>
-		<origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+		<origin xyz="0.0 0.0 ${BASE_RADIUS*7/5}" rpy="0 0 0"/>
 		<limit lower="${-85*DEG2RAD}" upper="${85*DEG2RAD}" effort="${joint_pitch_max_effort}" velocity="${joint_pitch_max_speed}"/>
 		<axis xyz="1 0 0"/>
 	</joint>
@@ -134,7 +134,7 @@
 
     <link name="camera_link">
         <inertial>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <origin xyz="${BASE_RADIUS*2/5} 0 0" rpy="0 0 0"/>
             <mass value="0" />
             <mass value="${face_mass}" />
             <box_inertia 
@@ -151,7 +151,7 @@
             </geometry>
         </collision>-->
         <visual>
-            <origin xyz="0 0 ${BASE_RADIUS/5*9}" rpy="0 ${-PI/2} 0"/>
+            <origin xyz="${BASE_RADIUS*2/5} 0 0" rpy="0 0 0"/>
             <geometry>
                 <!-- <mesh filename="package://pan_and_tilt_description/meshes/head.stl" scale="1 1 1"/> -->
                 <box size="${BASE_RADIUS/10} ${BASE_RADIUS/10} ${BASE_RADIUS/10}"/>
@@ -170,7 +170,7 @@
 	<joint name="camera_joint" type="fixed">
 		<parent link="pitch_link"/>
 		<child link="camera_link"/>
-		<origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+		<origin xyz="0.0 0.0 0.0" rpy="0 ${-PI/2} 0"/>
 	</joint>
 
       <!-- camera -->
