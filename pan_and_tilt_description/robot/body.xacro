@@ -134,7 +134,7 @@
 
     <link name="camera_link">
         <inertial>
-            <origin xyz="${BASE_RADIUS*2/5} 0 0" rpy="0 0 0"/>
+            <origin xyz="${BASE_RADIUS/5*2} 0 0 " rpy="0 0 0"/>
             <mass value="0" />
             <mass value="${face_mass}" />
             <box_inertia 
@@ -151,7 +151,7 @@
             </geometry>
         </collision>-->
         <visual>
-            <origin xyz="${BASE_RADIUS*2/5} 0 0" rpy="0 0 0"/>
+            <origin xyz="${BASE_RADIUS/5*2} 0 0" rpy="0 0 0"/>
             <geometry>
                 <!-- <mesh filename="package://pan_and_tilt_description/meshes/head.stl" scale="1 1 1"/> -->
                 <box size="${BASE_RADIUS/10} ${BASE_RADIUS/10} ${BASE_RADIUS/10}"/>
@@ -170,19 +170,26 @@
 	<joint name="camera_joint" type="fixed">
 		<parent link="pitch_link"/>
 		<child link="camera_link"/>
-		<origin xyz="0.0 0.0 0.0" rpy="0 ${-PI/2} 0"/>
+		<origin xyz="0.0 0.0 0.0" rpy="0 ${-PI/2} ${-PI/2}"/>
 	</joint>
 
+    <link name="vision_link"/>
+    <joint name="vision_camera_joint" type="fixed">
+        <parent link="camera_link"/>
+        <child link="vision_link"/>
+        <origin xyz="${BASE_RADIUS/5*2} 0.0 0.0" rpy="0 0 0"/>
+    </joint>
+
       <!-- camera -->
-    <gazebo reference="camera_link">
+    <gazebo reference="vision_link">
         <sensor type="camera" name="camera1">
         <update_rate>30.0</update_rate>
         <camera name="main_cam">
             <pose>0 0 0 0 0 0</pose>
             <horizontal_fov>1.3962634</horizontal_fov>
             <image>
-            <width>400</width>
-            <height>400</height>
+            <width>640</width>
+            <height>480</height>
             <format>R8G8B8</format>
             </image>
             <clip>

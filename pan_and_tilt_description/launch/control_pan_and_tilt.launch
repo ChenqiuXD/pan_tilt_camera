@@ -18,8 +18,7 @@
         output="screen" args="--namespace=/pan_and_tilt 
                               joint_state_controller
                               pitch_joint_velocity_controller
-                              yaw_joint_velocity_controller
-                              --shutdown-timeout 3">
+                              yaw_joint_velocity_controller">
       <remap from="robot_description" to="pan_and_tilt_robot_description" />
   </node>
 
