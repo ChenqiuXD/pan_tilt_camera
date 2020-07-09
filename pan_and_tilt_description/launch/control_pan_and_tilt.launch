@@ -17,8 +17,8 @@
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
         output="screen" args="--namespace=/pan_and_tilt 
                               joint_state_controller
-                              pitch_joint_position_controller
-                              yaw_joint_position_controller
+                              pitch_joint_velocity_controller
+                              yaw_joint_velocity_controller
                               --shutdown-timeout 3">
       <remap from="robot_description" to="pan_and_tilt_robot_description" />
   </node>
