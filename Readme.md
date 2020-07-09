@@ -15,7 +15,7 @@ To visualize the camera, run:
 
 ## Visualization
 The pan-and-tilt camera is like:(know it's ugly, be tolerant)  
-![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/Movable_No_p_gain/pics/Pan_tilt_camera.png)  
+![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/Pan_tilt_camera.png)  
 
 The overall scene is:  
-![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/Movable_No_p_gain/pics/overall_scene.png)  
+![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/overall_scene.png)  
