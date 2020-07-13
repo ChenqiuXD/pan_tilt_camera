@@ -7,14 +7,10 @@ Create a workspace, after catkin_make and source the devel/setup.bash, run the f
 > roslaunch pan_and_tilt_description main_sim.launch  
 
 Rotate the pan and tilt camera, run:  
-> rostopic pub -1 /pan_and_tilt/pitch_joint_velocity_controller/command std_msgs/Float64 '{data: -0.3}'  
-> Or with multiple robots  
 > rostopic pub -1 /robot1/pitch_joint_velocity_controlelr/commadn std_msgs/Float64 '{dataL -0.3}'  
 
 or change topic to /pan_and_tilt/yaw_joint_velocity_controller/command to control the base rotation.  
 To visualize the camera, run:  
-> rosrun image_view image_view image:=/pan_and_tilt/camera/image_raw  
-> Or with multiple robots  
 > rosrun image_view image_view image:=/robot1/pan_and_tilt/camera/image_raw  
 
 ## Visualization
