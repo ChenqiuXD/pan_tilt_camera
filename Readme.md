@@ -18,7 +18,7 @@ To visualize the camera, run:
 > rosrun image_view image_view image:=/robot1/pan_and_tilt/camera/image_raw  
 
 ## Visualization
-The pan-and-tilt camera is like :) know it's ugly, be tolerant  
+The pan-and-tilt camera is like :) I know it's ugly, be tolerant  
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/Pan_tilt_camera.png)  
 
 The overall scene is:  
