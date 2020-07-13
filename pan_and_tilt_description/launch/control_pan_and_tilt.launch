@@ -7,11 +7,10 @@
   <node name="robot_state_publisher_pan_and_tilt" pkg="robot_state_publisher" type="robot_state_publisher"
         respawn="false" output="screen">
             <param name="publish_frequency" type="double" value="5.0" />
-            <remap from="robot_description" to="pan_and_tilt_robot_description" />
             <remap from="/joint_states" to="/pan_and_tilt/joint_states" />
         </node>
 
-  <!-- This is needed because controller manager needs the robot description parameter -->
+  <!-- This is needed because robot state publisher needs the robot description parameter -->
   <param name="robot_description" command="$(find xacro)/xacro '$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro'" />
 
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
@@ -19,7 +18,6 @@
                               joint_state_controller
                               pitch_joint_velocity_controller
                               yaw_joint_velocity_controller">
-      <remap from="robot_description" to="pan_and_tilt_robot_description" />
   </node>
 
 </launch>
