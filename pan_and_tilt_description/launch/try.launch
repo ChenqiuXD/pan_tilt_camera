@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<launch>
-    <rosparam file="$(find pan_and_tilt_description)/config/pan_and_tilt.yaml" command="load" ns="robot1" /> 
-</launch>

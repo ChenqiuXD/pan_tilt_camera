@@ -3,23 +3,18 @@
 
   <arg name="namespace" default=""/>
   <rosparam file="$(find pan_and_tilt_description)/config/pan_and_tilt.yaml"
-            command="load" ns="$(arg namespace)"/>
+            command="load" />
 
-  <node name="robot_state_publisher_pan_and_tilt" pkg="robot_state_publisher" type="robot_state_publisher"
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
         respawn="false" output="screen">
             <param name="publish_frequency" type="double" value="5.0" />
-            <remap from="/joint_states" to="/pan_and_tilt/joint_states" />
-        </node>
-
-  <!-- This is needed because robot state publisher needs the robot description parameter -->
-  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
+  </node>
 
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
         output="screen" args="--namespace=$(arg namespace) 
                               joint_state_controller
                               pitch_joint_velocity_controller
-                              yaw_joint_velocity_controller
-                              --shutdown-timeout 3">
+                              yaw_joint_velocity_controller">
   </node>
 
 </launch>
