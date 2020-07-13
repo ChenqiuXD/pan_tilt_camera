@@ -10,7 +10,6 @@ project(pan_and_tilt_description)
 find_package(catkin REQUIRED COMPONENTS
   gazebo_ros
   rospy
-  spawn_robot_tools_pkg
 )
 
 ## System dependencies are found with CMake's conventions

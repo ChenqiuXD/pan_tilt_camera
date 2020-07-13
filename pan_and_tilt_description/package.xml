@@ -11,15 +11,10 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>gazebo_ros</build_depend>
   <build_depend>rospy</build_depend>
-  <build_depend>spawn_robot_tools_pkg</build_depend>
-  <build_depend>person_sim</build_depend>
   <build_export_depend>gazebo_ros</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
-  <build_export_depend>spawn_robot_tools_pkg</build_export_depend>
   <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>rospy</exec_depend>
-  <exec_depend>spawn_robot_tools_pkg</exec_depend>
-  <exec_depend>person_sim</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
     
-    <include file="$(find spawn_robot_tools_pkg)/launch/spawn_robot_xacro_multiple.launch">
-        <arg name="x" value="0.0" />
-        <arg name="y" value="0.0" />
-        <arg name="z" value="0.0" />
-        <arg name="roll" value="0.0"/>
-        <arg name="pitch" value="0.0"/>
-        <arg name="yaw" value="0.0" />
-        <arg name="xacro_robot_file" value="$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
-        <arg name="robot_name" value="pan_and_tilt" />
-    </include>
+    <arg name="x" default="0.0" />
+    <arg name="y" default="0.0" />
+    <arg name="z" default="0.0" />
+    <arg name="roll" default="0"/>
+    <arg name="pitch" default="0"/>
+    <arg name="yaw" default="0.0" />
+    <arg name="xacro_robot_file" default="" />    
+    <arg name="robot_name" default="" />
+
+    <!-- Load the URDF into the ROS Parameter Server -->
+    <param name="$(arg robot_name)/robot_description" command="$(find xacro)/xacro --inorder $(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
     
+    <!-- Run a python script to send a service call to gazebo_ros to spawn a URDF robot -->
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+          args="-urdf -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg roll) -P $(arg pitch) -Y $(arg yaw) -model $(arg robot_name)
+                -param robot_description"/>
+
 </launch>
