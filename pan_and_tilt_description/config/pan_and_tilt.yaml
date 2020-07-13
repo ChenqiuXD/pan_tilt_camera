@@ -1,14 +1,13 @@
-pan_and_tilt:
-    joint_state_controller:
-      type: joint_state_controller/JointStateController
-      publish_rate: 50
-    
-    # Position Controllers ---------------------------------------
-    pitch_joint_velocity_controller:
-      type: velocity_controllers/JointVelocityController
-      joint: pitch_joint
-      pid: {p: 10.0, i: 0.1, d: 1.0}
-    yaw_joint_velocity_controller:
-      type: velocity_controllers/JointVelocityController
-      joint: yaw_joint
-      pid: {p: 10.0, i: 0.1, d: 1.0}
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50
+
+# Position Controllers ---------------------------------------
+pitch_joint_velocity_controller:
+  type: velocity_controllers/JointVelocityController
+  joint: pitch_joint
+  pid: {p: 10.0, i: 0.1, d: 1.0}
+yaw_joint_velocity_controller:
+  type: velocity_controllers/JointVelocityController
+  joint: yaw_joint
+  pid: {p: 10.0, i: 0.1, d: 1.0}

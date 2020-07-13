@@ -17,15 +17,22 @@
     <arg name="verbose" value="$(arg verbose)"/>
   </include>
 
-  <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
-    <arg name="x" value="0.0" />
-    <arg name="y" value="0.0" />
-    <arg name="z" value="0.0" />
-    <arg name="roll" value="0.0"/>
-    <arg name="pitch" value="0.0"/>
-    <arg name="yaw" value="0.0" />
-    <arg name="xacro_robot_file" value="$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
-    <arg name="robot_name" value="pan_and_tilt" />
-  </include>
-  <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch"/> 
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
+
+  <group ns="/robot1">
+    <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
+      <arg name="x" value="0.0" />
+      <arg name="y" value="0.0" />
+      <arg name="z" value="0.0" />
+      <arg name="roll" value="0.0"/>
+      <arg name="pitch" value="0.0"/>
+      <arg name="yaw" value="0.0" />
+      <arg name="xacro_robot_file" value="$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
+      <arg name="robot_name" value="pan_and_tilt" />
+      <arg name="namespace" value="/robot1" />
+    </include>
+    <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch">
+      <arg name="namespace" value="/robot1"/>
+    </include> 
+  </group>
 </launch>
