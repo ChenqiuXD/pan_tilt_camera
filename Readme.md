@@ -23,6 +23,9 @@ The overall scene is:
 A camera's view:  
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/camera_view.png)  
 
+You can see two robots in rviz:  
+![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/multiple_robots_rviz.png)  
+
 ## Helpful reference:
 When launching multiple robots, try following sample:  
 > https://answers.gazebosim.org//question/16497/spawning-multiple-robots-each-with-a-controller-in-the-same-namespace-as-the-controller_manager/  

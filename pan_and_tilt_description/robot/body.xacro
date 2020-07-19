@@ -25,6 +25,7 @@
         </visual>
     </link>
     
+    <link name="world"/>
     <joint name="world_base_joint" type="fixed">
         <parent link="world"/>
         <child link="base_link"/>
@@ -117,7 +118,7 @@
 		<parent link="yaw_link"/>
 		<child link="pitch_link"/>
 		<origin xyz="0.0 0.0 ${BASE_RADIUS*7/5}" rpy="0 0 0"/>
-		<limit lower="0" upper="${-90*DEG2RAD}" effort="${joint_pitch_max_effort}" velocity="${joint_pitch_max_speed}"/>
+		<limit lower="0" upper="${90*DEG2RAD}" effort="${joint_pitch_max_effort}" velocity="${joint_pitch_max_speed}"/>
 		<axis xyz="1 0 0"/>
 	</joint>
 	    

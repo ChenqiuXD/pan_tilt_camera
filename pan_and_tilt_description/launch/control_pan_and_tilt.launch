@@ -2,13 +2,19 @@
 <launch>
 
   <arg name="namespace" default=""/>
-  <rosparam file="$(find pan_and_tilt_description)/config/pan_and_tilt.yaml"
-            command="load" />
+  <rosparam file="$(find pan_and_tilt_description)/config/pan_and_tilt.yaml" command="load" />
+  <param name="$(arg namespace)_robot_description" command="$(find xacro)/xacro --inorder $(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
+
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
         respawn="false" output="screen">
             <param name="publish_frequency" type="double" value="5.0" />
+            <param name="tf_prefix" value="$(arg namespace)"/>
+            <remap from="robot_description" to="$(arg namespace)_robot_description"/>
   </node>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" 
+        respawn="false" output="screen"/>
 
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
         output="screen" args="--namespace=$(arg namespace) 

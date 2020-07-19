@@ -15,8 +15,6 @@
     <xacro:property name="BASE_RADIUS" value="0.5" />
     <xacro:property name="INF" value="100000000000000000" />
     
-    <link name="world"/>
-    
     <gazebo>
         <plugin name="gazebo_ros_control" 
                 filename="libgazebo_ros_control.so">

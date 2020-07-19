@@ -17,7 +17,7 @@
     <arg name="verbose" value="$(arg verbose)"/>
   </include>
 
-  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
+  
 
   <group ns="/robot1">
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
@@ -33,9 +33,10 @@
     <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch">
       <arg name="namespace" value="/robot1"/>
     </include> 
+    <node pkg="tf" type="static_transform_publisher" name="first_pos" args="3.0 0 0 0 0 0 world /robot1/world 100"/>
   </group>
 
-    <group ns="/robot2">
+  <group ns="/robot2">
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
       <arg name="x" value="-3.0" />
       <arg name="y" value="0.0" />
@@ -49,6 +50,9 @@
     <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch">
       <arg name="namespace" value="/robot2"/>
     </include> 
+    <node pkg="tf" type="static_transform_publisher" name="seconde_pos" args="-3.0 0 0 0 0 0 world /robot2/world 100"/>
   </group>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find pan_and_tilt_description)/config/view.rviz" required="true" output="screen"/>
 
 </launch>
