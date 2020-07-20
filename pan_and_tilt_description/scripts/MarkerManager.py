@@ -24,7 +24,7 @@ class Drone:
         return sqrt(dist)
 
 class MarkerManager:
-    """Manage the half-ball markers to show different values of points."""
+    """Manage the half-ball markers to show different possibility of seeing droens. """
     def __init__(self, droneList):
         self.pub = rospy.Publisher("visualization_marker_array", Marker, queue_size=10)
         self.marker = Marker()
@@ -59,7 +59,8 @@ class MarkerManager:
         if len(self.drones):
             color.r = self.calcProb(pose)
         else:
-            color.r = 0.0        
+            color.r = 0.0
+        # TODO find a better visualization parameter combination. Maybe HSV space? 
         color.g = 0.1
         color.b = 0.3
         color.a = 1
@@ -68,6 +69,7 @@ class MarkerManager:
     def calcProb(self, pose):
         """ Calculate the probability of drone occuring here """
         id, dist = self.findNearestDrone(pose)
+        # TODO: You should not find nearest, you should sum up the influence of every drone 
         prob = 0
         if dist < self.DIST_THRESH:
             drone = self.drones[id]
@@ -110,7 +112,7 @@ def addDrones(droneArg):
         for drone in droneArg:
             droneList.append(Drone(drone[0], drone[1], drone[2], drone[3]))
     else:
-        rospy.logerr("No drone is added, please recheck your main function")
+        rospy.logerr("No drone in the droneArg, please recheck your main function")
     return droneList
 
 if __name__ == "__main__":
