@@ -7,6 +7,9 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1/Tree1
+        - /RobotModel1
+        - /RobotModel2
+        - /Marker1
       Splitter Ratio: 0.5
     Tree Height: 823
   - Class: rviz/Selection
@@ -82,6 +85,30 @@ Visualization Manager:
           Value: true
         robot2/yaw_link:
           Value: true
+        robot3/base_link:
+          Value: true
+        robot3/camera_link:
+          Value: true
+        robot3/pitch_link:
+          Value: true
+        robot3/vision_link:
+          Value: true
+        robot3/world:
+          Value: true
+        robot3/yaw_link:
+          Value: true
+        robot4/base_link:
+          Value: true
+        robot4/camera_link:
+          Value: true
+        robot4/pitch_link:
+          Value: true
+        robot4/vision_link:
+          Value: true
+        robot4/world:
+          Value: true
+        robot4/yaw_link:
+          Value: true
         world:
           Value: true
       Marker Scale: 1
@@ -104,6 +131,20 @@ Visualization Manager:
                 robot2/pitch_link:
                   robot2/camera_link:
                     robot2/vision_link:
+                      {}
+          robot3/world:
+            robot3/base_link:
+              robot3/yaw_link:
+                robot3/pitch_link:
+                  robot3/camera_link:
+                    robot3/vision_link:
+                      {}
+          robot4/world:
+            robot4/base_link:
+              robot4/yaw_link:
+                robot4/pitch_link:
+                  robot4/camera_link:
+                    robot4/vision_link:
                       {}
       Update Interval: 0
       Value: true
@@ -195,6 +236,102 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        pitch_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        vision_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        world:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        yaw_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: RobotModel
+      Robot Description: /robot3/robot_description
+      TF Prefix: /robot3
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        pitch_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        vision_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        world:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        yaw_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: RobotModel
+      Robot Description: /robot4/robot_description
+      TF Prefix: /robot4
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /visualization_marker
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -220,25 +357,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 9.18732834
+      Distance: 20.5710087
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.0389293581
-        Y: 0.0424302593
-        Z: -0.0894081891
+        X: 0.133448005
+        Y: 0.682025731
+        Z: 1.43407083
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.539797008
+      Pitch: 0.53479737
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.45900345
+      Yaw: 5.34399271
     Saved: ~
 Window Geometry:
   Displays:

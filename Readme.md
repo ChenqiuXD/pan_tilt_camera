@@ -24,7 +24,7 @@ A camera's view:
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/camera_view.png)  
 
 You can see two robots in rviz:  
-![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/multiple_robots_rviz.png)  
+![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/overall_pic.png)  
 
 ## Helpful reference:
 When launching multiple robots, try following sample:  
