@@ -26,9 +26,9 @@ class Drone:
 class MarkerManager:
     """Manage the half-ball markers to show different possibility of seeing droens. """
     def __init__(self, droneList):
-        self.pub = rospy.Publisher("visualization_marker_array", Marker, queue_size=10)
+        self.pub = rospy.Publisher("visualization_marker", Marker, queue_size=10)
         self.marker = Marker()
-        self.RADIUS = 5
+        self.RADIUS = 7
         self.GAP = 0.05
         self.COEF = 100.0
         self.DIST_THRESH = 1.5
@@ -56,37 +56,28 @@ class MarkerManager:
     def calcColor(self, pose):
         """ Calculate the color according to the pose with respect to drones """
         color = ColorRGBA()
+        colorCoef = 0.3
         if len(self.drones):
-            color.r = self.calcProb(pose)
+            prob = self.calcProb(pose)
+            if(prob):
+                color.r = self.calcProb(pose) * (1 - colorCoef) + colorCoef
+            else:
+                color.r = colorCoef
         else:
-            color.r = 0.0
-        # TODO find a better visualization parameter combination. Maybe HSV space? 
-        color.g = 0.1
+            color.r = colorCoef
         color.b = 0.3
+        color.g = 0.3
         color.a = 1
         return color
     
     def calcProb(self, pose):
         """ Calculate the probability of drone occuring here """
-        id, dist = self.findNearestDrone(pose)
-        # TODO: You should not find nearest, you should sum up the influence of every drone 
         prob = 0
-        if dist < self.DIST_THRESH:
-            drone = self.drones[id]
-            prob = drone.prob * exp(-dist)
-        return prob
-
-    def findNearestDrone(self, pose):
-        minDist = 100
-        id = 0
-        minid = 0
         for drone in self.drones:
             dist = drone.calcDist(pose)
-            if dist<minDist:
-                minDist = dist
-                minid = id
-            id += 1
-        return minid, minDist
+            if dist < self.DIST_THRESH:
+                prob += drone.prob * exp(-dist)
+        return prob
 
     def display(self):
         """ Draw a half-ball according to drones list """
@@ -116,9 +107,9 @@ def addDrones(droneArg):
     return droneList
 
 if __name__ == "__main__":
-    droneArg = [ [5, 0.23, 0.34, 1],
-                 [4.3, 1.5, 0.34, 1],
-                 [5.5, 0, 0, 1] ]
+    droneArg = [ [7, 0.23, 0.34, 1],
+                 [7.3, 1.5, 0.34, 1],
+                 [6.9, 0, 0, 1] ]
     droneList = addDrones(droneArg)
     manager = MarkerManager(droneList)
     rospy.init_node('markerManager')

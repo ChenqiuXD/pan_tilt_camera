@@ -2,10 +2,11 @@
 import rospy
 from gazebo_msgs.msg import LinkStates
 
-link_name = "/robot2::yaw_link"
+def callback(data):
+    id = data.name.index("/robot2::pitch_link")
+    print data.pose[id].orientation.z, '\n'
 
-rospy.init_node('linkState_listener')
-rate = rospy.Rate(2)
-while not rospy.is_shutdown():
-    
-    rate.sleep()
+if __name__=="__main__":
+    rospy.init_node('linkState_listener')
+    while not rospy.is_shutdown():
+        sub = rospy.Subscriber('/gazebo/link_states', LinkStates, callback)
