@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="body">
+    <xacro:macro name="body">
+        
+    <link name="base_link">
+        <inertial>
+            <origin xyz="0 0 ${BASE_RADIUS/4}" rpy="0 0 0"/>
+            <mass value="${base_mass}" />
+            <cylinder_inertia 
+                m="${base_mass}" 
+                r="${BASE_RADIUS}" 
+                h="${BASE_RADIUS/2}"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 ${BASE_RADIUS/4}" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="${BASE_RADIUS}" length="${BASE_RADIUS/2}" />
+            </geometry>
+            <material name="Grey">
+                <color rgba="0.3 0.3 0.3 1.0"/>
+            </material>
+        </visual>
+    </link>
+    
+    <link name="world"/>
+    <joint name="world_base_joint" type="fixed">
+        <parent link="world"/>
+        <child link="base_link"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+    </joint>
+        
+    <link name="yaw_link">
+        <inertial>
+            <origin xyz="0 0 ${BASE_RADIUS/4*3}" rpy="0 0 0"/>
+            <mass value="${base_mass}" />
+            <cylinder_inertia 
+                m="${base_mass}" 
+                r="${BASE_RADIUS}" 
+                h="${BASE_RADIUS/2}"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 ${BASE_RADIUS/4*3}" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="${BASE_RADIUS}" length="${BASE_RADIUS/2}" />
+            </geometry>
+            <material name="Red">
+                <color rgba="0.8 0.0 0.0 1.0"/>
+            </material>
+        </visual>
+    </link>
+        
+    <gazebo reference="yaw_link">
+        <kp>100000.0</kp>
+        <kd>100000.0</kd>
+        <mu1>10.0</mu1>
+        <mu2>10.0</mu2>
+        <material>Gazebo/Red</material>
+    </gazebo>
+
+    <joint name="yaw_joint" type="revolute">
+        <parent link="base_link"/>
+        <child link="yaw_link"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+        <limit effort="${joint_yaw_max_effort}" velocity="${joint_yaw_max_speed}" lower="${-INF}" upper="${INF}"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+	    
+    <transmission name="tran1">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="yaw_joint">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="motor1">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    
+	    
+    <link name="pitch_link">
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 ${PI/2} 0"/>
+            <mass value="${joints_mass}" />
+            <cylinder_inertia 
+                m="${joints_mass}" 
+                r="${BASE_RADIUS/5*2}" 
+                h="${BASE_RADIUS}"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 ${PI/2} 0"/>
+            <geometry>
+                <cylinder radius="${BASE_RADIUS/5*2}" length="${BASE_RADIUS}"/>
+            </geometry>
+            <material name="White">
+                <color rgba="0.0 0.0 0.0 1.0"/>
+            </material>
+        </visual>
+    </link>
+        
+    <gazebo reference="pitch_link">
+        <kp>100000.0</kp>
+        <kd>100000.0</kd>
+        <mu1>10.0</mu1>
+        <mu2>10.0</mu2>
+        <material>Gazebo/Green</material>
+    </gazebo>
+
+	<joint name="pitch_joint" type="revolute">
+		<parent link="yaw_link"/>
+		<child link="pitch_link"/>
+		<origin xyz="0.0 0.0 ${BASE_RADIUS*7/5}" rpy="0 0 0"/>
+		<limit lower="0" upper="${90*DEG2RAD}" effort="${joint_pitch_max_effort}" velocity="${joint_pitch_max_speed}"/>
+		<axis xyz="1 0 0"/>
+	</joint>
+	    
+    <transmission name="tran2">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="pitch_joint">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="motor2">
+            <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>  
+
+    <link name="camera_link">
+        <inertial>
+            <origin xyz="${BASE_RADIUS/5*2} 0 0 " rpy="0 0 0"/>
+            <mass value="0" />
+            <mass value="${face_mass}" />
+            <box_inertia 
+                m="${face_mass}" 
+                x="${BASE_RADIUS/10}" 
+                y="${BASE_RADIUS/10}" 
+                z="${BASE_RADIUS/10}"/>
+        </inertial>
+        <visual>
+            <origin xyz="${BASE_RADIUS/5*2} 0 0" rpy="0 0 0"/>
+            <geometry>
+                <!-- <mesh filename="package://pan_and_tilt_description/meshes/head.stl" scale="1 1 1"/> -->
+                <box size="${BASE_RADIUS/10} ${BASE_RADIUS/10} ${BASE_RADIUS/10}"/>
+            </geometry>
+            <material name="Black">
+                <color rgba="1.0 1.0 1.0 1.0"/>
+            </material>
+        </visual>
+    </link>
+        
+    <gazebo reference="camera_link">
+        <kp>100000.0</kp>
+        <kd>100000.0</kd>
+        <mu1>10.0</mu1>
+        <mu2>10.0</mu2>
+        <material>Gazebo/Gold</material>
+    </gazebo>
+
+	<joint name="camera_joint" type="fixed">
+		<parent link="pitch_link"/>
+		<child link="camera_link"/>
+		<origin xyz="0.0 0.0 0.0" rpy="0 ${-PI/2} ${-PI/2}"/>
+	</joint>
+
+    <link name="vision_link"/>
+    <joint name="vision_camera_joint" type="fixed">
+        <parent link="camera_link"/>
+        <child link="vision_link"/>
+        <origin xyz="${BASE_RADIUS/5*2} 0.0 0.0" rpy="0 0 0"/>
+    </joint>
+
+      <!-- camera -->
+    <gazebo reference="vision_link">
+        <sensor type="camera" name="camera1">
+        <update_rate>30.0</update_rate>
+        <camera name="main_cam">
+            <pose>0 0 0 0 0 0</pose>
+            <horizontal_fov>1.3962634</horizontal_fov>
+            <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+            </image>
+            <clip>
+                <near>0.01</near>
+                <far>200.0</far>
+            </clip>
+            <noise>
+            <type>gaussian</type>
+            <stddev>0.0</stddev>
+            </noise>
+        </camera>
+        <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+            <alwaysOn>true</alwaysOn>
+            <updateRate>0.0</updateRate>
+            <cameraName>pan_and_tilt/camera</cameraName>
+            <imageTopicName>image_raw</imageTopicName>
+            <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+            <frameName>main_camera_link</frameName>
+            <hackBaseline>0.07</hackBaseline>
+            <distortionK1>0.0</distortionK1>
+            <distortionK2>0.0</distortionK2>
+            <distortionK3>0.0</distortionK3>
+            <distortionT1>0.0</distortionT1>
+            <distortionT2>0.0</distortionT2>
+        </plugin>
+        </sensor>
+    </gazebo>
+
+    </xacro:macro>
+    
+</robot>

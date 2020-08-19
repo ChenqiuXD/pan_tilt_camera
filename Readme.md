@@ -1,0 +1,46 @@
+# A pan-tilt camera  
+## Overview  
+A pan and tilt camera used in gazebo. The robot is controlled by ROS's controller manager by pid methods. To examine the robot model, please read the 'robot' file and check out pan_and_tilt.xacro. Currently the joint is controlled directly by gazebo by changing velocity.   
+
+## Something you need to do before using this package
+Please move the 'heatmap' and 'background' folders in the pan_and_tilt_description folder to your gazebo local model database.  
+> cp -r `rospack find pan_and_tilt_description`/models/heatmap 'xxx'  
+
+'xxx' should be your database directory, usally should be ~/.gazebo/models.  
+If terminal prompt that "file not found" or something similar, please check whether you have source bevel/setup.bash  
+
+If you hope not to move the models, a alternative is modify the GAZEBO_MODEL_PATH:  
+> export GAZEBO_MODEL_PATH=`rospack find pan_and_tilt_description`/models:$GAZEBO_MODEL_PATH  
+
+Please change the path of models in the spawn_heatmaps.launch file.  
+> args="-sdf -file /home/davlee/ROS_ws/catkin_ws/src/pan_and_tilt_description/models/heatmap/model.sdf  
+
+Here, the directory after '-file' should be changed with respect to your directory.  
+
+## Usage  
+Create a workspace, after catkin_make and source the devel/setup.bash, run the following command:  
+> roslaunch pan_and_tilt_description main_sim.launch  
+
+Rotate the pan and tilt camera, run:  
+> rostopic pub -1 /robot1/pitch_joint_velocity_controlelr/commadn std_msgs/Float64 '{dataL -0.3}'  
+
+or change topic to /pan_and_tilt/yaw_joint_velocity_controller/command to control the base rotation.  
+To visualize the camera, run:  
+> rosrun image_view image_view image:=/robot1/pan_and_tilt/camera/image_raw  
+
+## Visualization
+The pan-and-tilt camera is like :) I know it's ugly, be tolerant  
+![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/Pan_tilt_camera.png)  
+
+The overall scene is:  
+![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/overall_scene.png)  
+
+A camera's view:  
+![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/camera_view.png)  
+
+You can see two robots in rviz:  
+![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/overall_pic.png)  
+
+## Helpful reference:
+When launching multiple robots, try following sample:  
+> https://answers.gazebosim.org//question/16497/spawning-multiple-robots-each-with-a-controller-in-the-same-namespace-as-the-controller_manager/  

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <arg name="debug" default="false"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="pause" default="false"/>
+  <arg name="verbose" default="true"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find pan_and_tilt_description)/worlds/factory.world"/>
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg pause)"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="headless" value="$(arg headless)"/>
+    <arg name="verbose" value="$(arg verbose)"/>
+  </include>  
+
+  <include file="$(find pan_and_tilt_description)/launch/spawn_heatmaps.launch"/>
+
+  <group ns="/robot1">
+    <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
+      <arg name="x" value="1.5" />
+      <arg name="y" value="0.0" />
+      <arg name="z" value="0.0" />
+      <arg name="roll" value="0.0"/>
+      <arg name="pitch" value="0.0"/>
+      <arg name="yaw" value="0.0" />
+      <arg name="xacro_robot_file" value="$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
+      <arg name="robot_name" value="/robot1" />
+      <!-- unit of init angles : radian -->
+      <arg name="init_yaw_angle" value="0.57"/> 
+      <arg name="init_pitch_angle" value="0.13"/>
+    </include>
+    <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch">
+      <arg name="namespace" value="/robot1"/>
+    </include> 
+    <node pkg="tf" type="static_transform_publisher" name="first_pos" args="1.5 0 0 0 0 0 world /robot1/world 100"/>
+  </group>
+
+  <group ns="/robot2">
+    <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
+      <arg name="x" value="-1.5" />
+      <arg name="y" value="0.0" />
+      <arg name="z" value="0.0" />
+      <arg name="roll" value="0.0"/>
+      <arg name="pitch" value="0.0"/>
+      <arg name="yaw" value="0.0" />
+      <arg name="xacro_robot_file" value="$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
+      <arg name="robot_name" value="/robot2" />
+      <!-- unit of init angles : radian -->
+      <arg name="init_yaw_angle" value="0.0"/>
+      <arg name="init_pitch_angle" value="0.0"/>
+    </include>
+    <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch">
+      <arg name="namespace" value="/robot2"/>
+    </include> 
+    <node pkg="tf" type="static_transform_publisher" name="seconde_pos" args="-1.5 0 0 0 0 0 world /robot2/world 100"/>
+  </group>
+
+  <group ns="/robot3">
+    <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
+      <arg name="x" value="0.0" />
+      <arg name="y" value="1.5" />
+      <arg name="z" value="0.0" />
+      <arg name="roll" value="0.0"/>
+      <arg name="pitch" value="0.0"/>
+      <arg name="yaw" value="0.0" />
+      <arg name="xacro_robot_file" value="$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
+      <arg name="robot_name" value="/robot3" />
+      <!-- unit of init angles : radian -->
+      <arg name="init_yaw_angle" value="-1.57"/>
+      <arg name="init_pitch_angle" value="0.57"/>
+    </include>
+    <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch">
+      <arg name="namespace" value="/robot3"/>
+    </include> 
+    <node pkg="tf" type="static_transform_publisher" name="first_pos" args="0.0 1.5 0 0 0 0 world /robot3/world 100"/>
+  </group>
+
+  <group ns="/robot4">
+    <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
+      <arg name="x" value="0.0" />
+      <arg name="y" value="-1.5" />
+      <arg name="z" value="0.0" />
+      <arg name="roll" value="0.0"/>
+      <arg name="pitch" value="0.0"/>
+      <arg name="yaw" value="0.0" />
+      <arg name="xacro_robot_file" value="$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
+      <arg name="robot_name" value="/robot4" />
+      <!-- unit of init angles : radian -->
+      <arg name="init_yaw_angle" value="-0.2"/>
+      <arg name="init_pitch_angle" value="0.4"/>
+    </include>
+    <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch">
+      <arg name="namespace" value="/robot4"/>
+    </include> 
+    <node pkg="tf" type="static_transform_publisher" name="first_pos" args="0.0 -1.5 0 0 0 0 world /robot4/world 100"/>
+  </group>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find pan_and_tilt_description)/config/view.rviz" required="true" output="screen"/>
+
+</launch>

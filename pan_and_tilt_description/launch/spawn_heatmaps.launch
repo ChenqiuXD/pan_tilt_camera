@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="roll1" value="0.0" />
+  <arg name="pitch1" value="0.0" />
+  <arg name="yaw1" value="1.57" />
+
+  <arg name="roll2" value="0.0" />
+  <arg name="pitch2" value="-1.57" />
+  <arg name="yaw2" value="0.0" />
+
+  <arg name="roll3" value="1.57" />
+  <arg name="pitch3" value="0.0" />
+  <arg name="yaw3" value="0.0" />
+
+  <!-- !Please change the directory with respect to your directory -->
+  <node name="spawner1" type="spawn_model" pkg="gazebo_ros" respawn="false"
+        args="-sdf -file /home/davlee/ROS_ws/catkin_ws/src/pan_and_tilt_description/models/heatmap/model.sdf
+              -R $(arg roll1) -P $(arg pitch1) -Y $(arg yaw1)
+              -model heatmap1"/>
+
+  <node name="spawner2" type="spawn_model" pkg="gazebo_ros" respawn="false"
+        args="-sdf -file /home/davlee/ROS_ws/catkin_ws/src/pan_and_tilt_description/models/heatmap/model.sdf
+              -R $(arg roll2) -P $(arg pitch2) -Y $(arg yaw2)
+              -model heatmap2"/>
+
+  <node name="spawner3" type="spawn_model" pkg="gazebo_ros" respawn="false"
+        args="-sdf -file /home/davlee/ROS_ws/catkin_ws/src/pan_and_tilt_description/models/heatmap/model.sdf
+              -R $(arg roll3) -P $(arg pitch3) -Y $(arg yaw3)
+              -model heatmap3"/>
+</launch>
