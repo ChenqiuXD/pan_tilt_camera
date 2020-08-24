@@ -78,27 +78,27 @@ def stateReset(ctrlManager):
 
 
 
-if __name__ == "__main__":
-    rospy.init_node("camera_controller")
-    numOfCamera = 4
-    ctrlManager = ControllerManager(numOfCamera)
-    rate = rospy.Rate(1)
-
-    print("Test start")
-    # Sleep 100 ms. Because ControllerManager need some time to use callback to get the correct states of joints.
-    rospy.sleep(0.1)
-    while not rospy.is_shutdown():
-        # To test either manipulate function or getState function, please comment the other
-        try:
-            # Test stateControl()
-            stateReset(ctrlManager)
-            # Test getState function
-            # id = 2
-            # print("Getting ", id, "State")
-            # ctrlManager.manipulate([-0.2, -0.2], id)
-            # state = ctrlManager.getState(id)
-            # print(state)
-            rate.sleep()
-
-        except rospy.exceptions.ROSInterruptException:
-            rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
+# if __name__ == "__main__":
+#     rospy.init_node("camera_controller")
+#     numOfCamera = 4
+#     ctrlManager = ControllerManager(numOfCamera)
+#     rate = rospy.Rate(1)
+#
+#     print("Test start")
+#     # Sleep 100 ms. Because ControllerManager need some time to use callback to get the correct states of joints.
+#     rospy.sleep(0.1)
+#     while not rospy.is_shutdown():
+#         # To test either manipulate function or getState function, please comment the other
+#         try:
+#             # Test stateControl()
+#             # stateReset(ctrlManager)
+#         # Test getState function
+#             id = 1
+#             print("Getting ", id, "State")
+#             ctrlManager.manipulate([0.2, -0.2], id)
+#             state = ctrlManager.getState(id)
+#             print(state)
+#             rate.sleep()
+#
+#         except rospy.exceptions.ROSInterruptException:
+#             rospy.logwarn("ROS Interrupt Exception, trying to shut down node")

@@ -1,20 +1,12 @@
 #!/usr/bin/env python
 import rospy
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
-from Camera import Camera
-=======
->>>>>>> xh
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Point
 from std_msgs.msg import ColorRGBA
 from math import pi, sqrt, cos, sin, exp
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
 import random
-=======
 from scipy.spatial import SphericalVoronoi, geometric_slerp
 import numpy as np
-
->>>>>>> xh
 
 class Drone:
     """ The position and likelihood of drones, alpha is yaw and theta is pitch in a ball coordinate"""
@@ -23,38 +15,29 @@ class Drone:
         self.alpha = alpha
         self.theta = theta
         self.prob = probability
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
-    
-    def calcDist(self, pose):
-        """ Calculate the distance from this drone to the pose """
-        dist = 0
-        dist += (self.len*sin(self.theta) - pose.z) ** 2
-        dist += (self.len*cos(self.theta)*sin(self.alpha) - pose.y) ** 2
-        dist += (self.len*cos(self.theta)*cos(self.alpha) - pose.x) ** 2
-        return sqrt(dist)
-
-=======
 
     def calcDist(self, pose):
         """ Calculate the distance from this drone to the pose """
-        dist = 0
-        dist += (self.len * sin(self.theta) - pose.z) ** 2
-        dist += (self.len * cos(self.theta) * sin(self.alpha) - pose.y) ** 2
-        dist += (self.len * cos(self.theta) * cos(self.alpha) - pose.x) ** 2
-        return sqrt(dist)
-
-
->>>>>>> xh
+        if isinstance(pose,np.ndarray):
+            dist = 0
+            dist += (self.len * sin(self.theta) - pose[2]) ** 2
+            dist += (self.len * cos(self.theta) * sin(self.alpha) - pose[1]) ** 2
+            dist += (self.len * cos(self.theta) * cos(self.alpha) - pose[0]) ** 2
+            return sqrt(dist)
+        elif isinstance(pose, Point):
+            dist = 0
+            dist += (self.len * sin(self.theta) - pose.z) ** 2
+            dist += (self.len * cos(self.theta) * sin(self.alpha) - pose.y) ** 2
+            dist += (self.len * cos(self.theta) * cos(self.alpha) - pose.x) ** 2
+            return sqrt(dist)
+        else:
+            raise Exception("Data type of pose in calDist is wrong.")
 class MarkerManager:
     """Manage the half-ball markers to show different possibility of seeing droens. """
     def __init__(self, droneList):
         self.pub = rospy.Publisher("visualization_marker", Marker, queue_size=10)
         self.marker = Marker()
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
-        self.RADIUS = 7
-=======
         self.RADIUS = 20
->>>>>>> xh
         self.GAP = 0.05
         self.COEF = 100.0
         self.DIST_THRESH = 1.5
@@ -73,15 +56,9 @@ class MarkerManager:
 
     def calcPose(self, h, arcLen, perimeter, radius):
         pose = Point()
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
-        angle = arcLen/perimeter*2*pi
-        pose.x = radius*cos(angle)
-        pose.y = radius*sin(angle)
-=======
         angle = arcLen / perimeter * 2 * pi
         pose.x = radius * cos(angle)
         pose.y = radius * sin(angle)
->>>>>>> xh
         pose.z = h
         return pose
 
@@ -91,11 +68,7 @@ class MarkerManager:
         colorCoef = 0.3
         if len(self.drones):
             prob = self.calcProb(pose)
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
-            if(prob):
-=======
             if (prob):
->>>>>>> xh
                 color.r = self.calcProb(pose) * (1 - colorCoef) + colorCoef
             else:
                 color.r = colorCoef
@@ -105,40 +78,27 @@ class MarkerManager:
         color.g = 0.3
         color.a = 1
         return color
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
-    
-=======
 
->>>>>>> xh
     def calcProb(self, pose):
         """ Calculate the probability of drone occuring here """
         prob = 0
         for drone in self.drones:
             dist = drone.calcDist(pose)
             if dist < self.DIST_THRESH:
-                prob += drone.prob * exp(-dist)
+                prob = drone.prob * exp(-dist)+prob
         return prob
 
     def display(self):
         """ Draw a half-ball according to drones list """
         self.setConstantArg()
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
+
         heights = (i/self.COEF for i in range(0, int(self.RADIUS*self.COEF), int(self.GAP*self.COEF)))
-        # random.seed()
-        for h in heights:
-            # The radius of the circle of certain height
-            radius = sqrt(self.RADIUS*self.RADIUS - h*h)
-            perimeter = 2*pi*radius
-            arcLens = (i/self.COEF for i in range(0, int(perimeter*self.COEF), int(self.GAP*self.COEF)))
-=======
-        heights = (i / self.COEF for i in range(0, int(self.RADIUS * self.COEF), int(self.GAP * self.COEF)))
         # random.seed()
         for h in heights:
             # The radius of the circle of certain height
             radius = sqrt(self.RADIUS * self.RADIUS - h * h)
             perimeter = 2 * pi * radius
             arcLens = (i / self.COEF for i in range(0, int(perimeter * self.COEF), int(self.GAP * self.COEF)))
->>>>>>> xh
             for arcLen in arcLens:
                 pose = self.calcPose(h, arcLen, perimeter, radius)
                 self.marker.points.append(pose)
@@ -147,9 +107,8 @@ class MarkerManager:
 
         self.pub.publish(self.marker)
 
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
-=======
 def cart2spher(points):
+    """x y z to theta phi"""
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
     theta = np.arccos(points[2]/rho)
     if points[1] >= 0:
@@ -160,43 +119,21 @@ def cart2spher(points):
     return result
 
 def spher2cart(points):
+    """theta phi to x y z"""
     z=np.cos(points[0])
     y=np.sin(points[0])*np.sin(points[1])
     x=np.sin(points[0])*np.cos(points[1])
     result= np.array([x,y,z])
     return result
 
->>>>>>> xh
 def addDrones(droneArg):
     droneList = []
     if len(droneArg):
         for drone in droneArg:
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
-            droneList.append(Drone(drone[0], drone[1], drone[2], drone[3]))
-=======
             droneList.append(Drone(drone[0], drone[1], drone[2], drone[3]))#add drone:radius,yaw,theta,prob
->>>>>>> xh
     else:
         rospy.logerr("No drone in the droneArg, please recheck your main function")
     return droneList
-
-<<<<<<< 1c1f3f63f736b11907618a9c97881734e07fd198
-if __name__ == "__main__":
-    droneArg = [ [7, 0.23, 0.34, 1],
-                 [7.3, 1.5, 0.34, 1],
-                 [6.9, 0, 0, 1] ]
-    droneList = addDrones(droneArg)
-    manager = MarkerManager(droneList)
-    rospy.init_node('markerManager')
-    rate = rospy.Rate(10)
-    print("Starting publishing marekers")
-    while not rospy.is_shutdown():
-        try:
-            manager.display()
-            rate.sleep()
-        except rospy.exceptions.ROSInterruptException:
-            rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
-=======
 
 def addVoronoi(points):
     """add voronoi on the surface. Note that before using this function, modify the parameters(radius, center) first"""
@@ -212,7 +149,8 @@ def addVoronoi(points):
         for i in range(n):
             start = sv.vertices[region][i]
             end = sv.vertices[region][(i + 1) % n]
-            temp=radius*geometric_slerp(start, end, t_vals)
+            if not (start == end).all():
+                temp=radius*geometric_slerp(start, end, t_vals)
             result = np.concatenate((result, temp[None]), axis=0)
     return result
 
@@ -244,6 +182,7 @@ def adddisplay(points):
     marker.scale.z = 0.25
     result_v = addVoronoi(points)
     result = result_v
+    storepoint=[]
     # result_C = addCamerafield(points, 0.148*pi, pi/12)
     # result = np.concatenate((result_v, result_C),axis=0)
     for i in range(len(result)):
@@ -260,28 +199,32 @@ def adddisplay(points):
             if point.z>=0:
                 marker.points.append(point)
                 marker.colors.append(color)
+                storepoint.append(point)
     pub.publish(marker)
-
-if __name__ == "__main__":
-    droneArg = [[20, 0.23, 0.34, 1],
-                [20.3, 1.5, 0.34, 1],
-                [20.9, 0, 0, 1]]
-    points = 20*np.array([[sin(pi/3)*cos(pi/2), sin(pi/3)*sin(pi/2), cos(pi/3)], [sin(pi/3)*cos(pi), \
-                sin(pi/3)*sin(pi),cos(pi/3)], [sin(pi/3)*cos(3*pi/2), sin(pi/3)*sin(3*pi/2), cos(pi/3)], \
-                       [sin(pi/3)*cos(0), sin(pi/3)*sin(0), cos(pi/3)], [0, 0, 1], [0, 0, -1]])
-    droneList = addDrones(droneArg)
-    manager = MarkerManager(droneList)
-    rospy.init_node('markerManager')
-    rate = rospy.Rate(1)
-    print("Starting publishing markers")
-    count=0
-    while not rospy.is_shutdown():
-        count = count+1
-        try:
-            if (count <= 5):
-                manager.display()
-                adddisplay(points)
-                rate.sleep()
-        except rospy.exceptions.ROSInterruptException:
-            rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
->>>>>>> xh
+    return storepoint
+#
+# if __name__ == "__main__":
+#     droneArg = [[20, 0.23, 0.34, 1],
+#                 [20.3, 1.5, 0.34, 1],
+#                 [20.9, 0, 0, 1]]
+#     points = 20*np.array([[sin(pi/3)*cos(pi/2), sin(pi/3)*sin(pi/2), cos(pi/3)], [sin(pi/3)*cos(pi), \
+#                 sin(pi/3)*sin(pi),cos(pi/3)], [sin(pi/3)*cos(3*pi/2), sin(pi/3)*sin(3*pi/2), cos(pi/3)], \
+#                        [sin(pi/3)*cos(0), sin(pi/3)*sin(0), cos(pi/3)], [0, 0, 1], [0, 0, -1]])
+#     droneList = addDrones(droneArg)
+#     manager = MarkerManager(droneList)
+#     rospy.init_node('markerManager')
+#     rate = rospy.Rate(30)
+#     print("Starting publishing markers")
+#     count=0
+#     while not rospy.is_shutdown():
+#         count = count+1
+#         points = 20*np.array([[sin(pi/3+0.05*count)*cos(pi/2), sin(pi/3+0.05*count)*sin(pi/2), cos(pi/3+0.05*count)], [sin(pi/3)*cos(pi), \
+#                    sin(pi/3)*sin(pi),cos(pi/3)], [sin(pi/3)*cos(3*pi/2), sin(pi/3)*sin(3*pi/2), cos(pi/3)], \
+#                            [sin(pi/3)*cos(0), sin(pi/3)*sin(0), cos(pi/3)], [0, 0, 1], [0, 0, -1]])
+#         try:
+#             if (count <= 5):
+#                 manager.display()
+#                 adddisplay(points)
+#                 rate.sleep()
+#         except rospy.exceptions.ROSInterruptException:
+#             rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
