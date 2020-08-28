@@ -1,3 +1,0 @@
-/home/davlee/ROS_ws/catkin_ws/src/gazebo_plugin/build/CMakeFiles/edit_cache.dir
-/home/davlee/ROS_ws/catkin_ws/src/gazebo_plugin/build/CMakeFiles/rebuild_cache.dir
-/home/davlee/ROS_ws/catkin_ws/src/gazebo_plugin/build/CMakeFiles/factory.dir

@@ -1,3 +1,0 @@
-export GAZEBO_MODEL_PATH=$HOME/ROS_ws/catkin_ws/src/gazebo_plugin/models:$GAZEBO_MODEL_PATH
-export GAZEBO_PLUGIN_PATH=$HOME/ROS_ws/catkin_ws/src/gazebo_plugin/build:$GAZEBO_PLUGIN_PATH
-

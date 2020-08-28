@@ -17,8 +17,6 @@
     <arg name="verbose" value="$(arg verbose)"/>
   </include>  
 
-  <include file="$(find pan_and_tilt_description)/launch/spawn_heatmaps.launch"/>
-
   <group ns="/robot1">
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
       <arg name="x" value="1.5" />
