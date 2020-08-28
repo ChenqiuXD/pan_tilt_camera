@@ -66,6 +66,7 @@ while not rospy.is_shutdown():
         # display
         sv = SphericalVoronoi(points, 20, center)
         MarkerManager.adddisplay(points)
+        print("H_function:", Optimization.H(state))
         rate.sleep()
     except rospy.exceptions.ROSInterruptException:
         rospy.logwarn("ROS Interrupt Exception, trying to shut down node")

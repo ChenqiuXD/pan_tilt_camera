@@ -151,7 +151,7 @@ def addVoronoi(points):
             end = sv.vertices[region][(i + 1) % n]
             if not (start == end).all():
                 temp=radius*geometric_slerp(start, end, t_vals)
-            result = np.concatenate((result, temp[None]), axis=0)
+                result = np.concatenate((result, temp[None]), axis=0)
     return result
 
 def addCamerafield(points,delthe,delphi):

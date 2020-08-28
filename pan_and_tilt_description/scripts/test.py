@@ -1,3 +1,4 @@
+<<<<<<< 9f3e07d4c55181856a89491cdd658d4a20958bde
 import matplotlib.pyplot as plt
 from scipy.spatial import SphericalVoronoi
 from scipy.spatial import geometric_slerp
@@ -47,3 +48,16 @@ _ = ax.set_yticks([])
 _ = ax.set_zticks([])
 fig.set_size_inches(4, 4)
 plt.show()
+=======
+import numpy as np
+from math import pi, sqrt, cos, sin, exp, acos
+
+N = 4000000
+sum = 0
+randtheta = np.random.uniform(0, pi / 2, N)
+randphi = np.random.uniform(0, 2 * pi, N)
+for i in range(N):
+    sum = sum+sin(randtheta[i])
+result = sum / N
+print(result*pi*pi)
+>>>>>>> src/pan_tilt_description
