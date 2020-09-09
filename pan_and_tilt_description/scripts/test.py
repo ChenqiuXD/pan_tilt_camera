@@ -1,63 +1,94 @@
-<<<<<<< 9f3e07d4c55181856a89491cdd658d4a20958bde
-import matplotlib.pyplot as plt
-from scipy.spatial import SphericalVoronoi
-from scipy.spatial import geometric_slerp
-from mpl_toolkits.mplot3d import proj3d
+from numba import cuda, float32
 import numpy as np
-# set input data
-points = np.array([[1, 0, 0],
-                   [np.sqrt(2)/2, np.sqrt(2)/2, 0],[0, 1, 0],[-np.sqrt(2)/2, np.sqrt(2)/2, 0], [0, -1, 0],[-np.sqrt(2)/2, -np.sqrt(2)/2, 0], [-1, 0, 0],[np.sqrt(2)/2, -np.sqrt(2)/2, 0]])
+import math
+from time import time
 
-radius = 1
-center = np.array([0, 0, 0])
-sv = SphericalVoronoi(points, radius, center)
+# thread per block
+# 每个block有 BLOCK_SIZE x BLOCK_SIZE 个元素
+BLOCK_SIZE = 16
 
-# sort vertices (optional, helpful for plotting)
-sv.sort_vertices_of_regions()
-t_vals = np.linspace(0, 1, 2000)
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-# plot the unit sphere for reference (optional)
-u = np.linspace(0, 2 * np.pi, 100)
-v = np.linspace(0, np.pi, 100)
-x = np.outer(np.cos(u), np.sin(v))
-y = np.outer(np.sin(u), np.sin(v))
-z = np.outer(np.ones(np.size(u)), np.cos(v))
-ax.plot_surface(x, y, z, color='y', alpha=0.1)
-# plot generator points
-ax.scatter(points[:, 0], points[:, 1], points[:, 2], c='b')
-print(sv.vertices)
-# plot Voronoi vertices
-ax.scatter(sv.vertices[:, 0], sv.vertices[:, 1], sv.vertices[:, 2],
-                   c='g')
-# indicate Voronoi regions (as Euclidean polygons)
-for region in sv.regions:
-   n = len(region)
-   for i in range(n):
-       start = sv.vertices[region][i]
-       end = sv.vertices[region][(i + 1) % n]
-       result= geometric_slerp(start, end, t_vals)
-       ax.plot(result[..., 0],
-               result[..., 1],
-               result[..., 2],
-               c='k')
-ax.azim = 10
-ax.elev = 40
-_ = ax.set_xticks([])
-_ = ax.set_yticks([])
-_ = ax.set_zticks([])
-fig.set_size_inches(4, 4)
-plt.show()
-=======
-import numpy as np
-from math import pi, sqrt, cos, sin, exp, acos
+@cuda.jit
+def matmul(A, B, C):
+    """  矩阵乘法 C = A * B
+    """
+    row = cuda.threadIdx.x + cuda.blockDim.x * cuda.blockIdx.x
+    col = cuda.threadIdx.y + cuda.blockDim.y * cuda.blockIdx.y
 
-N = 4000000
-sum = 0
-randtheta = np.random.uniform(0, pi / 2, N)
-randphi = np.random.uniform(0, 2 * pi, N)
-for i in range(N):
-    sum = sum+sin(randtheta[i])
-result = sum / N
-print(result*pi*pi)
->>>>>>> src/pan_tilt_description
+    if row < C.shape[0] and col < C.shape[1]:
+        tmp = 0.
+        for k in range(A.shape[1]):
+            tmp += A[row, k] * B[k, col]
+        C[row, col] = tmp
+
+@cuda.jit
+def matmul_shared_memory(A, B, C):
+    """
+    使用Shared Memory的矩阵乘法 C = A * B
+    """
+    # 在Shared Memory中定义向量
+    # 向量可被整个Block的所有Thread共享
+    # 必须声明向量大小和数据类型
+    sA = cuda.shared.array(shape=(BLOCK_SIZE, BLOCK_SIZE), dtype=float32)
+    sB = cuda.shared.array(shape=(BLOCK_SIZE, BLOCK_SIZE), dtype=float32)
+
+    tx = cuda.threadIdx.x
+    ty = cuda.threadIdx.y
+    row = cuda.threadIdx.x + cuda.blockDim.x * cuda.blockIdx.x
+    col = cuda.threadIdx.y + cuda.blockDim.y * cuda.blockIdx.y
+
+    if row >= C.shape[0] and col >= C.shape[1]:
+        # 当(x, y)越界时退出
+        return
+
+    tmp = 0.
+    # 以一个 BLOCK_SIZE x BLOCK_SIZE 为单位
+    for m in range(math.ceil(A.shape[1] / BLOCK_SIZE)):
+        sA[tx, ty] = A[row, ty + m * BLOCK_SIZE]
+        sB[tx, ty] = B[tx + m * BLOCK_SIZE, col]
+        # 线程同步，等待Block中所有Thread预加载结束
+        # 该函数会等待所有Thread执行完之后才执行下一步
+        cuda.syncthreads()
+        # 此时已经将A和B的子矩阵拷贝到了sA和sB
+
+        # 计算Shared Memory中的向量点积
+        # 直接从Shard Memory中读取数据的延迟很低
+        for n in range(BLOCK_SIZE):
+            tmp += sA[tx, n] * sB[n, ty]
+
+        # 线程同步，等待Block中所有Thread计算结束
+        cuda.syncthreads()
+
+    # 循环后得到每个BLOCK的点积之和
+    C[row, col] = tmp
+
+def main():
+    # 初始化矩阵
+    M = 6000
+    N = 4800
+    P = 4000
+    A = np.random.random((M, N)) # 随机生成的 [M x N] 矩阵
+    B = np.random.random((N, P)) # 随机生成的 [N x P] 矩阵
+
+    A_device = cuda.to_device(A)
+    B_device = cuda.to_device(B)
+    C_device = cuda.device_array((M, P)) # [M x P] 矩阵
+
+    # 执行配置
+    threads_per_block = (BLOCK_SIZE, BLOCK_SIZE)
+    blocks_per_grid_x = int(math.ceil(A.shape[0] / BLOCK_SIZE))
+    blocks_per_grid_y = int(math.ceil(B.shape[1] / BLOCK_SIZE))
+    blocks_per_grid = (blocks_per_grid_x, blocks_per_grid_y)
+
+    start = time()
+    matmul[blocks_per_grid, threads_per_block](A_device, B_device, C_device)
+    cuda.synchronize()
+    print("matmul time :" + str(time() - start))
+
+    start = time()
+    matmul_shared_memory[blocks_per_grid, threads_per_block](A_device, B_device, C_device)
+    cuda.synchronize()
+    print("matmul with shared memory time :" + str(time() - start))
+    C = C_device.copy_to_host()
+
+if __name__ == "__main__":
+    main()

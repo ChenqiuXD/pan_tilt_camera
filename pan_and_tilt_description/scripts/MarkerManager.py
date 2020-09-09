@@ -112,17 +112,17 @@ def cart2spher(points):
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
     theta = np.arccos(points[2]/rho)
     if points[1] >= 0:
-        phi = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
+        phi = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))+pi/2
     else:
-        phi = pi+np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
+        phi = pi+np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))+pi/2
     result = np.array([theta, phi])
     return result
 
 def spher2cart(points):
     """theta phi to x y z"""
     z=np.cos(points[0])
-    y=np.sin(points[0])*np.sin(points[1])
-    x=np.sin(points[0])*np.cos(points[1])
+    y=np.sin(points[0])*np.sin(points[1]-pi/2)
+    x=np.sin(points[0])*np.cos(points[1]-pi/2)
     result= np.array([x,y,z])
     return result
 
@@ -196,7 +196,7 @@ def adddisplay(points):
             point.x = result[i][j,0]
             point.y = result[i][j,1]
             point.z = result[i][j,2]
-            if point.z>=0:
+            if point.z >= 0:
                 marker.points.append(point)
                 marker.colors.append(color)
                 storepoint.append(point)

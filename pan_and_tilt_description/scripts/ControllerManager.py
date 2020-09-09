@@ -35,6 +35,11 @@ class ControllerManager:
         else:
             self.yawPubs[CameraID].publish(speeds[1])
             self.pitchPubs[CameraID].publish(speeds[0])
+    def multimanipulate(self, speeds):
+        """send speeds command to multi cameras"""
+        length = len(speeds)
+        for i in range(length):
+            self.manipulate(speeds[i], i)
 
     def getState(self, cameraID):
         """ get pitch,yaw of camera """

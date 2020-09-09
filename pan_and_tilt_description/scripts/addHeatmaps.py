@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import rospy, tf
+import rospy,tf
 from gazebo_msgs.srv import SpawnModel
 from geometry_msgs.msg import Pose, Quaternion, Point
 
@@ -11,7 +11,7 @@ def addHeatmaps(droneList):
     print("Get it")
 
     # Load heatmap model from path
-    with open("/home/davlee/ROS_ws/pan_ws/src/pan_and_tilt_description/models/heatmap/model.sdf", "r") as f:
+    with open("/home/lee/pan_tilt_camera/src/pan_and_tilt_description/models/heatmap/model.sdf", "r") as f:
         product_xml = f.read()
 
     # Add heatm ap for every drone

@@ -28,6 +28,8 @@ rospy.sleep(0.1)
 while not rospy.is_shutdown():
     count = count + 1
     try:
+        fov_list = []
+        voro_list = []
         if (count < 3):
             manager.display()
         """get every camera state(points) and give control command"""
@@ -39,29 +41,28 @@ while not rospy.is_shutdown():
             points[numofCamera + i][1] = points[i][1]
             points[numofCamera + i][0] = points[i][0]
             """camera fov state"""
-            fov_list = np.array([[np.pi / 6 + state[i][0], 680 * np.pi / (6 * 480) + state[i][1]],
-                                 [np.pi / 6 - state[i][0], 680 * np.pi / (6 * 480) + state[i][1]],
-                                 [np.pi / 6 - state[i][0], 680 * np.pi / (6 * 480) - state[i][1]],
-                                 [np.pi / 6 + state[i][0], 680 * np.pi / (6 * 480) - state[i][1]]])  # Note
 
             if (count > 1):
+                fov_list.append(np.array([[np.pi / 6 + state[i][0], 680 * np.pi / (6 * 480) + state[i][1]],
+                                     [np.pi / 6 - state[i][0], 680 * np.pi / (6 * 480) + state[i][1]],
+                                     [np.pi / 6 - state[i][0], 680 * np.pi / (6 * 480) - state[i][1]],
+                                     [np.pi / 6 + state[i][0], 680 * np.pi / (6 * 480) - state[i][1]]]))  # Note
                 """compute ith camera Voronoi region"""
-                voro_list = np.random.rand(0, 3)
+                voro_list_i = np.random.rand(0, 3)
                 n = len(sv.regions[i])
                 for j in sv.regions[i]:
-                    voro_list = np.concatenate((voro_list, [sv.vertices[j]]), axis=0)  # Note
-                """Compute the derivation of objective function and control law"""
-                speeds = Optimization.controller(state[i], voro_list, fov_list)
-                """Avoid speeds is nan"""
-                if speeds[0] is np.nan or speeds[1] is np.nan:
-                    raise Exception(i, "th speed is nan")
-                print(i, "th: ", speeds)
-                """saturation of speed"""
-                if speeds[0] >= 5:
-                    speeds[0] = 5
-                if speeds[1] >= 5:
-                    speeds[1] = 5
-                ctrlManager.manipulate(speeds, i)
+                    voro_list_i = np.concatenate((voro_list_i, [sv.vertices[j]]), axis=0)  # Note
+                voro_list.append(voro_list_i)
+
+        """Compute the derivation of objective function and control law"""
+        if (count>1):
+            speeds = Optimization.controller(state, voro_list, fov_list)
+        # """saturation of speed"""
+        # if speeds[0] >= 5:
+        #     speeds[0] = 5
+        # if speeds[1] >= 5:
+        #     speeds[1] = 5
+            ctrlManager.multimanipulate(speeds)
 
         # display
         sv = SphericalVoronoi(points, 20, center)
