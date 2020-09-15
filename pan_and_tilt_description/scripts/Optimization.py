@@ -3,12 +3,12 @@ from math import pi, sqrt, cos, sin, exp, acos
 import numpy as np
 import spherical_geometry.polygon as sg
 import multiprocessing
-from src.pan_and_tilt_description.scripts import MarkerManager
+import MarkerManager
 
-a = np.pi/6
 # a represent the max value of angle derivation in the pan/yaw direction
-b = 680*np.pi/(6*480)
+a = np.pi/6
 # b represent the max value of angle derivation in the tilt/pitch direction
+b = 680*np.pi/(6*480)
 radius=20
 
 def Perf0(q, p, partialp=False, theta=False, fan=False):
@@ -23,7 +23,6 @@ def Perf0(q, p, partialp=False, theta=False, fan=False):
             return 2 * (np.linalg.norm(matrix_a * (q - p), np.inf)) * np.sign(q[0] - p[0])
         else:
             raise Exception("Parameter is not chosen. Please choose theta or phi ")
-
 
 def Perf1(q, p, partialp=False, theta=False, fan=False):
     # q and p is a vector in spherical coordinate

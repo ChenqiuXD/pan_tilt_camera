@@ -35,6 +35,7 @@ class ControllerManager:
         else:
             self.yawPubs[CameraID].publish(speeds[1])
             self.pitchPubs[CameraID].publish(speeds[0])
+
     def multimanipulate(self, speeds):
         """send speeds command to multi cameras"""
         length = len(speeds)
@@ -52,7 +53,8 @@ class ControllerManager:
 
 
 def stateSet(ctrlManager,id, state):
-    """ Test the manipulate function: rotate four cameras in turn. """
+    """ Test the manipulate function: rotate four cameras in turn. 
+    NOTE that this function is only used for test"""
     state_m = ctrlManager.getState(id)
     rate = rospy.Rate(100)
     k = 5
@@ -69,7 +71,7 @@ def stateSet(ctrlManager,id, state):
 
 def stateReset(ctrlManager):
     id =0
-    print("reset ", id+1, "th robot")
+    print("reset ", id + 1, "th robot")
     stateSet(ctrlManager, id, state=np.array([1, 1 * (np.pi / 2)]))
     id = 1
     print("reset ", id + 1, "th robot")
@@ -83,27 +85,30 @@ def stateReset(ctrlManager):
 
 
 
-# if __name__ == "__main__":
-#     rospy.init_node("camera_controller")
-#     numOfCamera = 4
-#     ctrlManager = ControllerManager(numOfCamera)
-#     rate = rospy.Rate(1)
-#
-#     print("Test start")
-#     # Sleep 100 ms. Because ControllerManager need some time to use callback to get the correct states of joints.
-#     rospy.sleep(0.1)
-#     while not rospy.is_shutdown():
-#         # To test either manipulate function or getState function, please comment the other
-#         try:
-#             # Test stateControl()
-#             # stateReset(ctrlManager)
-#         # Test getState function
-#             id = 1
-#             print("Getting ", id, "State")
-#             ctrlManager.manipulate([0.2, -0.2], id)
-#             state = ctrlManager.getState(id)
-#             print(state)
-#             rate.sleep()
-#
-#         except rospy.exceptions.ROSInterruptException:
-#             rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
+if __name__ == "__main__":
+    rospy.init_node("camera_controller")
+    numOfCamera = 4
+    ctrlManager = ControllerManager(numOfCamera)
+    rate = rospy.Rate(1)
+
+    print("Test start")
+    # Sleep 100 ms. Because ControllerManager need some time to use callback to get the correct states of joints.
+    rospy.sleep(0.1)
+    while not rospy.is_shutdown():
+        try:
+            # To test either manipulate function or getState function,
+            # please comment the other
+
+            # Test stateControl()
+            # stateReset(ctrlManager)
+
+            # Test getState function
+            id = 1
+            print("Getting ", id, "State")
+            ctrlManager.manipulate([0.2, -0.2], id)
+            state = ctrlManager.getState(id)
+            print(state)
+            rate.sleep()
+
+        except rospy.exceptions.ROSInterruptException:
+            rospy.logwarn("ROS Interrupt Exception, trying to shut down node")

@@ -32,6 +32,7 @@ class Drone:
             return sqrt(dist)
         else:
             raise Exception("Data type of pose in calDist is wrong.")
+
 class MarkerManager:
     """Manage the half-ball markers to show different possibility of seeing droens. """
     def __init__(self, droneList):
@@ -130,9 +131,9 @@ def addDrones(droneArg):
     droneList = []
     if len(droneArg):
         for drone in droneArg:
-            droneList.append(Drone(drone[0], drone[1], drone[2], drone[3]))#add drone:radius,yaw,theta,prob
+            droneList.append(Drone(drone[0], drone[1], drone[2], drone[3])) # add drone:radius,yaw,theta,prob
     else:
-        rospy.logerr("No drone in the droneArg, please recheck your main function")
+        rospy.logerr("No drone in the droneArg, please recheck your addDrones function")
     return droneList
 
 def addVoronoi(points):
@@ -202,29 +203,29 @@ def adddisplay(points):
                 storepoint.append(point)
     pub.publish(marker)
     return storepoint
-#
-# if __name__ == "__main__":
-#     droneArg = [[20, 0.23, 0.34, 1],
-#                 [20.3, 1.5, 0.34, 1],
-#                 [20.9, 0, 0, 1]]
-#     points = 20*np.array([[sin(pi/3)*cos(pi/2), sin(pi/3)*sin(pi/2), cos(pi/3)], [sin(pi/3)*cos(pi), \
-#                 sin(pi/3)*sin(pi),cos(pi/3)], [sin(pi/3)*cos(3*pi/2), sin(pi/3)*sin(3*pi/2), cos(pi/3)], \
-#                        [sin(pi/3)*cos(0), sin(pi/3)*sin(0), cos(pi/3)], [0, 0, 1], [0, 0, -1]])
-#     droneList = addDrones(droneArg)
-#     manager = MarkerManager(droneList)
-#     rospy.init_node('markerManager')
-#     rate = rospy.Rate(30)
-#     print("Starting publishing markers")
-#     count=0
-#     while not rospy.is_shutdown():
-#         count = count+1
-#         points = 20*np.array([[sin(pi/3+0.05*count)*cos(pi/2), sin(pi/3+0.05*count)*sin(pi/2), cos(pi/3+0.05*count)], [sin(pi/3)*cos(pi), \
-#                    sin(pi/3)*sin(pi),cos(pi/3)], [sin(pi/3)*cos(3*pi/2), sin(pi/3)*sin(3*pi/2), cos(pi/3)], \
-#                            [sin(pi/3)*cos(0), sin(pi/3)*sin(0), cos(pi/3)], [0, 0, 1], [0, 0, -1]])
-#         try:
-#             if (count <= 5):
-#                 manager.display()
-#                 adddisplay(points)
-#                 rate.sleep()
-#         except rospy.exceptions.ROSInterruptException:
-#             rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
+
+if __name__ == "__main__":
+    droneArg = [[20, 0.23, 0.34, 1],
+                [20.3, 1.5, 0.34, 1],
+                [20.9, 0, 0, 1]]
+    points = 20*np.array([[sin(pi/3)*cos(pi/2), sin(pi/3)*sin(pi/2), cos(pi/3)], [sin(pi/3)*cos(pi), \
+                sin(pi/3)*sin(pi),cos(pi/3)], [sin(pi/3)*cos(3*pi/2), sin(pi/3)*sin(3*pi/2), cos(pi/3)], \
+                       [sin(pi/3)*cos(0), sin(pi/3)*sin(0), cos(pi/3)], [0, 0, 1], [0, 0, -1]])
+    droneList = addDrones(droneArg)
+    manager = MarkerManager(droneList)
+    rospy.init_node('markerManager')
+    rate = rospy.Rate(30)
+    print("Starting publishing markers")
+    count=0
+    while not rospy.is_shutdown():
+        count = count+1
+        points = 20*np.array([[sin(pi/3+0.05*count)*cos(pi/2), sin(pi/3+0.05*count)*sin(pi/2), cos(pi/3+0.05*count)], [sin(pi/3)*cos(pi), \
+                   sin(pi/3)*sin(pi),cos(pi/3)], [sin(pi/3)*cos(3*pi/2), sin(pi/3)*sin(3*pi/2), cos(pi/3)], \
+                           [sin(pi/3)*cos(0), sin(pi/3)*sin(0), cos(pi/3)], [0, 0, 1], [0, 0, -1]])
+        try:
+            if (count <= 5):
+                manager.display()
+                adddisplay(points)
+                rate.sleep()
+        except rospy.exceptions.ROSInterruptException:
+            rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
