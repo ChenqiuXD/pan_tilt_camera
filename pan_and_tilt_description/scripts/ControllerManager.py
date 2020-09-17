@@ -70,6 +70,7 @@ def stateSet(ctrlManager,id, state):
     ctrlManager.manipulate(np.zeros(shape=(2,1)), id)
 
 def stateReset(ctrlManager):
+    """ Function that reset all the joint to initial pose """
     id =0
     print("reset ", id + 1, "th robot")
     stateSet(ctrlManager, id, state=np.array([1, 1 * (np.pi / 2)]))

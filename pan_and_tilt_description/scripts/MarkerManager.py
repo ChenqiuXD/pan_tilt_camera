@@ -81,7 +81,7 @@ class MarkerManager:
         return color
 
     def calcProb(self, pose):
-        """ Calculate the probability of drone occuring here """
+        """ Calculate the probability of drone occuring in pose """
         prob = 0
         for drone in self.drones:
             dist = drone.calcDist(pose)
