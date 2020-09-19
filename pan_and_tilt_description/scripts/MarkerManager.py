@@ -158,7 +158,7 @@ def addVoronoi(points):
 def addCamerafield(points,delthe,delphi):
     """add the FOV of the camera"""
     radius = 20
-    center = np.array([0, 0, 0])
+    # center = np.array([0, 0, 0])
     t_vals = np.linspace(0, 1, 2000)  # set the num of points on the line
     result = np.random.rand(0, 2000, 3)
     n = len(points)

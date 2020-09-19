@@ -21,7 +21,7 @@
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
       <arg name="x" value="1.5" />
       <arg name="y" value="0.0" />
-      <arg name="z" value="0.0" />
+      <arg name="z" value="110.0" />
       <arg name="roll" value="0.0"/>
       <arg name="pitch" value="0.0"/>
       <arg name="yaw" value="0.0" />
@@ -41,7 +41,7 @@
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
       <arg name="x" value="-1.5" />
       <arg name="y" value="0.0" />
-      <arg name="z" value="0.0" />
+      <arg name="z" value="110.0" />
       <arg name="roll" value="0.0"/>
       <arg name="pitch" value="0.0"/>
       <arg name="yaw" value="0.0" />
@@ -61,7 +61,7 @@
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
       <arg name="x" value="0.0" />
       <arg name="y" value="1.5" />
-      <arg name="z" value="0.0" />
+      <arg name="z" value="110.0" />
       <arg name="roll" value="0.0"/>
       <arg name="pitch" value="0.0"/>
       <arg name="yaw" value="0.0" />
@@ -81,7 +81,7 @@
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
       <arg name="x" value="0.0" />
       <arg name="y" value="-1.5" />
-      <arg name="z" value="0.0" />
+      <arg name="z" value="110.0" />
       <arg name="roll" value="0.0"/>
       <arg name="pitch" value="0.0"/>
       <arg name="yaw" value="0.0" />
@@ -98,5 +98,8 @@
   </group>
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find pan_and_tilt_description)/config/view.rviz" required="true" output="screen"/>
+
+	<!-- load the skyscraper -->
+    <param name="/skyscraper/robot_description" command="$(find xacro)/xacro --inorder $(find pan_and_tilt_description)/models/skyscraper_urdf/skyscraper.xacro" />
 
 </launch>

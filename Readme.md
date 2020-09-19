@@ -6,12 +6,16 @@ A pan and tilt camera used in gazebo. The robot is controlled by ROS's controlle
 Please copy the 'heatmap' and 'background' models to your gazebo local model database.  
 > cp -r `rospack find pan_and_tilt_description`/models/heatmap ~/.gazebo/models    
 > cp -r `rospack find pan_and_tilt_description`/models/background ~/.gazebo/models/  
+> cp -r `rospack find pan_and_tilt_description`/models/skyscraper ~/.gazebo/models/  
 
 Try 'source devel/setup.bash' if prompted "Error: package 'pan_and_tilt_description' not found", coz we used the `rospack find` command. And note that the local model path may vary.  
 
 ## Usage  
 Create a workspace, after catkin_make and source the devel/setup.bash, run the following command:  
 > roslaunch pan_and_tilt_description main_sim.launch  
+or  
+> roslaunch pan_and_tilt_description main_sim.launch gui:=true  
+If you wish to see the gazebo window.  
 
 To add heatmap models, please run the following command:  
 > cd `rospack find pan_and_tilt_description`/scripts  

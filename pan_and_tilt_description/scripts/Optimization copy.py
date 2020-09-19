@@ -9,19 +9,13 @@ import MarkerManager
 import pycuda.driver as cuda
 import pycuda.gpuarray as gpuarray
 import pycuda.autoinit
-from pycuda.compiler import SourceModule
+from kernel import kernel_func  # The GPU kernel (functions to be run in GPU)
 
 # a represent the max value of angle derivation in the pan/yaw direction
 a = np.pi/6
 # b represent the max value of angle derivation in the tilt/pitch direction
 b = np.pi/6*(640/480)
 radius=20
-
-# C kernel written for gpu computation
-mod = SourceModule("""
- 
-"""
-)
 
 def Perf0(q, p, partialp=False, theta=False, fan=False):
     # q and p is a vector in spherical coordinate
@@ -233,7 +227,7 @@ def partialH_varphi(p, poly_list, arc_list):
     Parameters
     ----------
     p       :   points spherical-coordinate (theta phi)
-    poly_list:  a list of cartesian-coordinates points on the boundary of polygon
+    poly_list:  a list of cartesian-coordinates points on the boundary of voronoi polygon
     arc_list:   a list of arcs of FOV
     Returns
     -------
@@ -258,12 +252,14 @@ def partialH_varphi(p, poly_list, arc_list):
     for i in range(N):
         randtheta = np.arccos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
-        temp=(p,randtheta,randphi,polygon,True)
+        # True represent this is calculating paritial with respect to theta
+        temp=(p,randtheta,randphi,polygon,True) 
         para.append(temp)
     pool = multiprocessing.Pool(int(multiprocessing.cpu_count()/2))
     result_fir = pool.map(multi_process_H_partial_surface, para)
     pool.close()
     pool.join()
+
     count = np.zeros(shape=(num_cam, 1))
     sum = np.zeros(shape=(num_cam, 1))
     for i in range(len(result_fir)):
@@ -294,6 +290,7 @@ def partialH_varphi(p, poly_list, arc_list):
         k[j] = Perf0(np.array([p[j,0], maxt]), p[j]) - Perf1(np.array([p[j,0], maxt]), p[j])  # f1-f2
     pool_l.close()
     pool_l.join()
+    
     result = ave_s*poly_area+k*ave_l*length
     return result
 

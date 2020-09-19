@@ -6,10 +6,7 @@ import multiprocessing
 import MarkerManager
 
 # GPU related module
-import pycuda.driver as cuda
-import pycuda.gpuarray as gpuarray
-import pycuda.autoinit
-from pycuda.compiler import SourceModule
+from numba import jit
 
 # a represent the max value of angle derivation in the pan/yaw direction
 a = np.pi/6
@@ -17,12 +14,7 @@ a = np.pi/6
 b = np.pi/6*(640/480)
 radius=20
 
-# C kernel written for gpu computation
-mod = SourceModule("""
- 
-"""
-)
-
+@jit
 def Perf0(q, p, partialp=False, theta=False, fan=False):
     # q and p is a vector in spherical coordinate
     matrix_a = np.array([[1, 0], [0, 1]])
@@ -36,6 +28,7 @@ def Perf0(q, p, partialp=False, theta=False, fan=False):
         else:
             raise Exception("Parameter is not chosen. Please choose theta or phi ")
 
+@jit
 def Perf1(q, p, partialp=False, theta=False, fan=False):
     # q and p is a vector in spherical coordinate
     epsilon = 0.2
@@ -50,7 +43,7 @@ def Perf1(q, p, partialp=False, theta=False, fan=False):
         else:
             raise Exception("Parameter is not chosen. Please choose theta or phi ")
 
-
+@jit
 def Perf(q, p):
     # q and p is a vector in spherical coordinate
     if abs(q[0] - p[0]) > b or abs(q[1] - p[1]) > a:
@@ -58,13 +51,12 @@ def Perf(q, p):
     else:
         return Perf0(q, p)
 
-
+@jit
 def PPerf(q, p, thetap=False, phip=False):
     if abs(q[0] - p[0]) > b or abs(q[1] - p[1]) > a:
         return Perf1(q, p, True, thetap, phip)
     else:
         return Perf0(q, p, True, thetap, phip)
-
 
 def phi(q):
     """Calculate the probability of drone occuring in the q position. 
@@ -77,55 +69,44 @@ def phi(q):
     result = manager.calcProb(q)
     return result
 
-def multi_process_H(args):
-    return H_multiprocess(*args)
-
+@jit
 def H_multiprocess(p, q):
     min_pq = 2*pi
     min_i = None
-    """Find the nearest points of P"""
+    # Find the nearest points of P
     length = len(p)
     for i in range(length):
-        p_cart = MarkerManager.spher2cart(p[i])
-        q_cart = MarkerManager.spher2cart(q)
+        p_cart = spher2cart(p[i])
+        q_cart = spher2cart(q)
         dis = acos(np.dot(p_cart, q_cart))
         if dis < min_pq:
             min_pq = dis
             min_i = i
-    """Compute the performance function and phi"""
+    # Compute the performance function and phi
     perf = Perf(q, p[min_i])
-    q_cart = radius * MarkerManager.spher2cart(q)
+    q_cart = radius * spher2cart(q)
     detect_phi = phi(q_cart)
     result = perf * detect_phi
     return result
 
+@jit
 def H(p):
-    para = []
     area = 2*pi*radius**2
     N=40000
     u = np.random.uniform(0, 1, N)
     v = np.random.uniform(1/2,1,N)
-    pool = multiprocessing.Pool(int(multiprocessing.cpu_count()))
-    """Compute the average of function and the area of sphere"""
+    # Compute the average of function and the area of sphere
+    result = 0
     for i in range(N):
         randtheta = np.arccos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
         q = np.array([randtheta, randphi])
-        para.append((p,q))
-    result_N = pool.map(multi_process_H, para)
-    pool.close()
-    pool.join()
-    ave = np.average(result_N)
+        result += H_multiprocess(p,q)
+    ave = np.average(result*1.0/N)
     result = area*ave
     return result
 
-
-def multi_process_H_partial_surface(args):
-    return integral_surface(*args)
-
-def multi_process_H_partial_line(args):
-    return integral_line(*args)
-
+@jit
 def integral_surface(p,x_theta,x_phi,polygon,theta):
     """
     theta is true for theta, and is false for phi
@@ -136,15 +117,15 @@ def integral_surface(p,x_theta,x_phi,polygon,theta):
     min_i = None
     length = len(p)
     for i in range(length):
-        p_cart = radius*MarkerManager.spher2cart(p[i])
-        q_cart = radius*MarkerManager.spher2cart(q)
+        p_cart = radius*spher2cart(p[i])
+        q_cart = radius*spher2cart(q)
         dis = acos(np.dot(p_cart, q_cart)/(radius**2))
         if dis < min_pq:
             min_pq = dis
             min_i = i
 
     q_sphere = np.array([x_theta, x_phi])
-    q_cart = radius * MarkerManager.spher2cart(q_sphere)
+    q_cart = radius * spher2cart(q_sphere)
 
     if theta is True:
         first_term = np.array([PPerf(q_sphere, p[min_i], thetap=True) * phi(q_cart)]) # question??sin(theta)
@@ -154,9 +135,11 @@ def integral_surface(p,x_theta,x_phi,polygon,theta):
     # second_term = np.array([-phi(q_l_1), phi(q_l_2)])
     return [first_term, min_i]
 
+@jit
 def integral_line(q_l_1,q_l_2):
     return np.array([-phi(q_l_1), phi(q_l_2)])
 
+@jit
 def partialH_theta(p, poly_list, arc_list):
     """
     Parameters
@@ -177,63 +160,51 @@ def partialH_theta(p, poly_list, arc_list):
     num_cam = len(p)
     polygon=[]
     poly_area = np.zeros(shape=(num_cam,1))
-    para=[]
     for j in range(num_cam):
         poly_list[j] = np.unique(poly_list[j],axis=0)
         polygon.append(sg.SingleSphericalPolygon(poly_list[j]))
         poly_area[j]=polygon[j].area()
 
-    # surface integral
+    # Calculate by GPU
+    count = np.zeros(shape=(num_cam, 1))
+    sum = np.zeros(shape=(num_cam, 1))
     for i in range(N):
         randtheta = np.arccos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
-        temp=(p,randtheta,randphi,polygon,True)
-        para.append(temp)
-    pool = multiprocessing.Pool(int(multiprocessing.cpu_count()/2))
-    result_fir = pool.map(multi_process_H_partial_surface, para)
-    pool.close()
-    pool.join()
-
-    count = np.zeros(shape=(num_cam, 1))
-    sum = np.zeros(shape=(num_cam, 1))
-    for i in range(len(result_fir)):
-        count[result_fir[i][1]] += 1
-        sum[result_fir[i][1]] = sum[result_fir[i][1]] + result_fir[i][0]
+        first_term, min_i = integral_surface(p,randtheta,randphi,polygon,True)
+        count[min_i] += 1
+        sum[min_i] += first_term
     ave_s = sum / count
 
     # line integral
     M=int(N/4)
     l_phi = np.empty([num_cam, M])
-    para_l = []
     ave_l = np.zeros(shape=(num_cam, 1))
     length = np.zeros(shape=(num_cam, 1))
     k = np.zeros(shape=(num_cam, 1))
-    pool_l = multiprocessing.Pool(int(multiprocessing.cpu_count() / 2))
+    result_lin = []
     for j in range(num_cam):
         mint = min(arc_list[j][:, 0])
         maxt = max(arc_list[j][:, 0])
         length[j] = 2 * (max(arc_list[j][:, 1]) - min(arc_list[j][:, 1]))
         l_phi[j] = np.random.uniform(min(arc_list[j][:, 1]), max(arc_list[j][:, 1]), M)
         for i in range(M):
-            q_l_1 = radius * MarkerManager.spher2cart(np.array([mint, l_phi[j][i]]))
-            q_l_2 = radius * MarkerManager.spher2cart(np.array([maxt, l_phi[j][i]]))
-            temp=(q_l_1,q_l_2)
-            para_l.append(temp)
-        result_lin = pool_l.map(multi_process_H_partial_line, para_l)
+            q_l_1 = radius * spher2cart(np.array([mint, l_phi[j][i]]))
+            q_l_2 = radius * spher2cart(np.array([maxt, l_phi[j][i]]))
+            result_lin.append(integral_line(q_l_1, q_l_2))
         ave_l[j] = np.average(result_lin)
         k[j] = Perf0(np.array([maxt, p[j,1]]), p[j]) - Perf1(np.array([maxt, p[j,1]]), p[j])  # f1-f2
-    pool_l.close()
-    pool_l.join()
 
     result = ave_s*poly_area+k*ave_l*length
     return result
 
+@jit
 def partialH_varphi(p, poly_list, arc_list):
     """
     Parameters
     ----------
     p       :   points spherical-coordinate (theta phi)
-    poly_list:  a list of cartesian-coordinates points on the boundary of polygon
+    poly_list:  a list of cartesian-coordinates points on the boundary of voronoi polygon
     arc_list:   a list of arcs of FOV
     Returns
     -------
@@ -247,53 +218,42 @@ def partialH_varphi(p, poly_list, arc_list):
     num_cam = len(p)
     polygon=[]
     poly_area = np.zeros(shape=(num_cam, 1))
-    para=[]
     # For camera No.j :
     for j in range(num_cam):
         poly_list[j] = np.unique(poly_list[j],axis=0)
         polygon.append(sg.SingleSphericalPolygon(poly_list[j]))
         poly_area[j]=polygon[j].area()
 
-    # surface integral
+    # Calculate by GPU
+    count = np.zeros(shape=(num_cam, 1))
+    sum = np.zeros(shape=(num_cam, 1))
     for i in range(N):
         randtheta = np.arccos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
-        temp=(p,randtheta,randphi,polygon,True)
-        para.append(temp)
-    pool = multiprocessing.Pool(int(multiprocessing.cpu_count()/2))
-    result_fir = pool.map(multi_process_H_partial_surface, para)
-    pool.close()
-    pool.join()
-    count = np.zeros(shape=(num_cam, 1))
-    sum = np.zeros(shape=(num_cam, 1))
-    for i in range(len(result_fir)):
-        count[result_fir[i][1]] = count[result_fir[i][1]] + 1
-        sum[result_fir[i][1]] = sum[result_fir[i][1]] + result_fir[i][0]
+        first_term, min_i = integral_surface(p,randtheta,randphi,polygon,True)
+        count[min_i] += 1
+        sum[min_i] += first_term
     ave_s = sum / count
 
     # line integral
     M=int(N/4)
     l_phi = np.empty([num_cam, M])
-    para_l = []
     ave_l = np.zeros(shape=(num_cam, 1))
     length = np.zeros(shape=(num_cam, 1))
     k = np.zeros(shape=(num_cam, 1))
-    pool_l = multiprocessing.Pool(int(multiprocessing.cpu_count() / 2))
+    result_lin = []
     for j in range(num_cam):
-        mint = min(arc_list[j][:, 1])
-        maxt = max(arc_list[j][:, 1])
-        length[j] = 2 * (max(arc_list[j][:, 0]) - min(arc_list[j][:, 0]))
-        l_phi[j] = np.random.uniform(min(arc_list[j][:, 0]), max(arc_list[j][:, 0]), M)
+        mint = min(arc_list[j][:, 0])
+        maxt = max(arc_list[j][:, 0])
+        length[j] = 2 * (max(arc_list[j][:, 1]) - min(arc_list[j][:, 1]))
+        l_phi[j] = np.random.uniform(min(arc_list[j][:, 1]), max(arc_list[j][:, 1]), M)
         for i in range(M):
-            q_l_1 = radius * MarkerManager.spher2cart(np.array([mint, l_phi[j][i]]))
-            q_l_2 = radius * MarkerManager.spher2cart(np.array([maxt, l_phi[j][i]]))
-            temp=(q_l_1,q_l_2)
-            para_l.append(temp)
-        result_lin = pool_l.map(multi_process_H_partial_line,para_l)
+            q_l_1 = radius * spher2cart(np.array([mint, l_phi[j][i]]))
+            q_l_2 = radius * spher2cart(np.array([maxt, l_phi[j][i]]))
+            result_lin.append(integral_line(q_l_1, q_l_2))
         ave_l[j] = np.average(result_lin)
-        k[j] = Perf0(np.array([p[j,0], maxt]), p[j]) - Perf1(np.array([p[j,0], maxt]), p[j])  # f1-f2
-    pool_l.close()
-    pool_l.join()
+        k[j] = Perf0(np.array([maxt, p[j,1]]), p[j]) - Perf1(np.array([maxt, p[j,1]]), p[j])  # f1-f2
+    
     result = ave_s*poly_area+k*ave_l*length
     return result
 
@@ -317,3 +277,24 @@ def controller(p, v_list, fov_list):
     angle_r = np.append(angle_r_pitch, angle_r_yaw, axis=1)
     return angle_r
 
+# Copied from MarkerManager for the use of numba
+@jit
+def cart2spher(points):
+    """x y z to theta phi"""
+    rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
+    theta = np.arccos(points[2]/rho)
+    if points[1] >= 0:
+        phi = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))+pi/2
+    else:
+        phi = pi+np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))+pi/2
+    result = np.array([theta, phi])
+    return result
+
+@jit
+def spher2cart(points):
+    """theta phi to x y z"""
+    z=np.cos(points[0])
+    y=np.sin(points[0])*np.sin(points[1]-pi/2)
+    x=np.sin(points[0])*np.cos(points[1]-pi/2)
+    result= np.array([x,y,z])
+    return result
