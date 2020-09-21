@@ -61,42 +61,44 @@ def PPerf(q, p, thetap=False, phip=False):
     else:
         return Perf0(q, p, True, thetap, phip)
 
-# @jit(nopython=True)
-# def H_multiprocess(p, q):
-#     min_pq = 2*pi
-#     min_i = None
-#     # Find the nearest points of P
-#     length = len(p)
-#     for i in range(length):
-#         p_cart = spher2cart(p[i])
-#         q_cart = spher2cart(q)
-#         dis = acos(np.dot(p_cart, q_cart))
-#         if dis < min_pq:
-#             min_pq = dis
-#             min_i = i
-#     # Compute the performance function and phi
-#     perf = Perf(q, p[min_i])
-#     q_cart = radius * spher2cart(q)
-#     detect_phi = phi(q_cart)
-#     result = perf * detect_phi
-#     return result
+@jit(nopython=True)
+def H(p):
+    area = 2*pi*radius**2
+    N=40000
+    u = np.random.uniform(0, 1, N)
+    v = np.random.uniform(1/2,1,N)
+    # Compute the average of function and the area of sphere
+    result = 0
+    for i in range(N):
+        randtheta = np.arccos(2 * v[i] - 1)
+        randphi = 2 * pi * u[i]
+        q = np.array([randtheta, randphi])
+        result += H_multiprocess(p,q)
+    ave = result*1.0/N
+    result = area*ave
+    return result
 
-# @jit(nopython=True)
-# def H(p):
-#     area = 2*pi*radius**2
-#     N=40000
-#     u = np.random.uniform(0, 1, N)
-#     v = np.random.uniform(1/2,1,N)
-#     # Compute the average of function and the area of sphere
-#     result = 0
-#     for i in range(N):
-#         randtheta = np.arccos(2 * v[i] - 1)
-#         randphi = 2 * pi * u[i]
-#         q = np.array([randtheta, randphi])
-#         result += H_multiprocess(p,q)
-#     ave = np.average(result*1.0/N)
-#     result = area*ave
-#     return result
+@jit(nopython=True)
+def H_multiprocess(p, q):
+    min_pq = 2*pi
+    min_i = -1
+    # Find the nearest points of P
+    length = len(p)
+    for i in range(length):
+        p_cart = spher2cart(p[i])
+        q_cart = spher2cart(q)
+        dis = acos(np.dot(p_cart, q_cart))
+        if dis < min_pq:
+            min_pq = dis
+            min_i = i
+
+    # Compute the performance function and phi
+    p_min = p[min_i]
+    perf = Perf(q, p_min)
+    q_cart = radius * spher2cart(q)
+    detect_phi = phi(q_cart)
+    result = perf * detect_phi
+    return result
 
 @jit(nopython=True)
 def integral_surface(p,x_theta,x_phi,theta):
@@ -110,7 +112,7 @@ def integral_surface(p,x_theta,x_phi,theta):
     min_i = 0
     length = len(p)
     for i in range(length):
-        p_cart = radius*spher2cart(p[i])
+        p_cart = radius * spher2cart(p[i])
         dis = acos(np.dot(p_cart, q_cart)/(radius**2))
         if dis < min_pq:
             min_pq = dis
@@ -119,14 +121,14 @@ def integral_surface(p,x_theta,x_phi,theta):
     if theta is True:
         # first_term = PPerf(q_sphere, p[min_i], thetap=True) * phi(q_cart)
         tmp = PPerf(q_sphere, p[min_i], thetap=True) * phi(q_cart)
-        first_term = np.array([tmp]) # question??sin(theta)
+        first_term = np.array(tmp) # question??sin(theta)
     else:
         # first_term = PPerf(q_sphere, p[min_i], phip=True) * phi(q_cart)
         tmp = PPerf(q_sphere, p[min_i], phip=True) * phi(q_cart)
-        first_term = np.array([tmp]) # question??sin(theta)
+        first_term = np.array(tmp) # question??sin(theta)
 
     # second_term = np.array([-phi(q_l_1), phi(q_l_2)])
-    return [first_term, min_i]
+    return first_term, min_i
 
 @jit(nopython=True)
 def integral_line(q_l_1,q_l_2):
@@ -150,7 +152,7 @@ def calcSurfaceIntegral(u, v, N, p):
 def calcLineIntegral(u, v, N, p, arc_list):
     M=int(N/4)
     num_cam = len(p)
-    l_phi = np.empty([num_cam, M])
+    l_phi = np.zeros(shape=(num_cam, M))
     ave_l = np.zeros(shape=(num_cam, 1))
     length = np.zeros(shape= (num_cam, 1))
     k = np.zeros(shape=(num_cam, 1))
@@ -165,10 +167,21 @@ def calcLineIntegral(u, v, N, p, arc_list):
             q_l_1 = radius * spher2cart(np.array([mint, l_phi[j][i]]))
             q_l_2 = radius * spher2cart(np.array([maxt, l_phi[j][i]]))
             result_lin.append(integral_line(q_l_1, q_l_2))
-        ave_l[j] = np.average(result_lin)
+        # result_lin_reshape = result_lin.reshape(result_lin.shape[0] * result_lin.shape[1])
+        ave_l[j] = average_2d(result_lin)
         k[j] = Perf0(np.array([maxt, p[j,1]]), p[j]) - Perf1(np.array([maxt, p[j,1]]), p[j])  # f1-f2
     
     return ave_l, length, k
+
+@jit(nopython=True)
+def average_2d(array):
+    sum = 0.0
+    count = 0.0
+    for i in array:
+        for j in i:
+            sum += j
+            count += 1
+    return sum/count
 
 def partialH_theta(p, poly_list, arc_list):
     """
@@ -298,8 +311,8 @@ def phi(q):
         # Calculate distance
         dist = 0.0
         dist += (drone[0] * sin(drone[2]) - q[2]) ** 2
-        dist += (drone[0] * cos(drone[2]) * sin(drone[1]) - q[2]) ** 2
-        dist += (drone[0] * cos(drone[2]) * cos(drone[1]) - q[2]) ** 2
+        dist += (drone[0] * cos(drone[2]) * sin(drone[1]) - q[1]) ** 2
+        dist += (drone[0] * cos(drone[2]) * cos(drone[1]) - q[0]) ** 2
         dist = sqrt(dist)
 
         # Add the probability by adding up the probability of each drone occuring at pose q
