@@ -29,13 +29,15 @@ ControllerManager.stateReset(ctrlManager)
 rospy.sleep(0.1)
 
 # Draw the half-ball and red area (which represent the probability of drones occuring there)
-dispManager.display()
+# dispManager.display()
+print("Start main loop")
 while not rospy.is_shutdown():
     count = count + 1
     try:
         fov_list = []
         voro_list = []
         # get every camera state(points) and give control command
+        print("Getting camera state")
         for i in range(numofCamera):
             # camera state
             state[i] = ctrlManager.getState(i)
@@ -62,6 +64,7 @@ while not rospy.is_shutdown():
                 voro_list.append(voro_list_i)
 
         # Compute the derivation of objective function and control law
+        print("Controlling")
         if (count>1):
             speeds = Optimization.controller(state, voro_list, fov_list)
         # # Saturation of speed
@@ -74,8 +77,8 @@ while not rospy.is_shutdown():
         # display the Voronoi regions
         center = np.array([0, 0, 0])
         sv = SphericalVoronoi(points, 20, center)
-        MarkerManager.adddisplay(points)
-        print("H_function:", Optimization.H(state))
+        # MarkerManager.adddisplay(points)
+        # print("H_function:", Optimization.H(state))
         rate.sleep()
     except rospy.exceptions.ROSInterruptException:
         rospy.logwarn("ROS Interrupt Exception, trying to shut down node")

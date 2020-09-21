@@ -6,6 +6,8 @@
   <arg name="headless" default="false"/>
   <arg name="pause" default="false"/>
   <arg name="verbose" default="true"/>
+  <!-- The height of the skyscraper -->
+  <arg name="building_height" default="11.75"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find pan_and_tilt_description)/worlds/factory.world"/>
@@ -21,7 +23,7 @@
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
       <arg name="x" value="1.5" />
       <arg name="y" value="0.0" />
-      <arg name="z" value="110.0" />
+      <arg name="z" value="$(arg building_height)" />
       <arg name="roll" value="0.0"/>
       <arg name="pitch" value="0.0"/>
       <arg name="yaw" value="0.0" />
@@ -41,7 +43,7 @@
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
       <arg name="x" value="-1.5" />
       <arg name="y" value="0.0" />
-      <arg name="z" value="110.0" />
+      <arg name="z" value="$(arg building_height)" />
       <arg name="roll" value="0.0"/>
       <arg name="pitch" value="0.0"/>
       <arg name="yaw" value="0.0" />
@@ -61,7 +63,7 @@
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
       <arg name="x" value="0.0" />
       <arg name="y" value="1.5" />
-      <arg name="z" value="110.0" />
+      <arg name="z" value="$(arg building_height)" />
       <arg name="roll" value="0.0"/>
       <arg name="pitch" value="0.0"/>
       <arg name="yaw" value="0.0" />
@@ -81,7 +83,7 @@
     <include file="$(find pan_and_tilt_description)/launch/spawn_pan_and_tilt_xacro.launch">
       <arg name="x" value="0.0" />
       <arg name="y" value="-1.5" />
-      <arg name="z" value="110.0" />
+      <arg name="z" value="$(arg building_height)" />
       <arg name="roll" value="0.0"/>
       <arg name="pitch" value="0.0"/>
       <arg name="yaw" value="0.0" />
@@ -99,7 +101,7 @@
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find pan_and_tilt_description)/config/view.rviz" required="true" output="screen"/>
 
-	<!-- load the skyscraper -->
-    <param name="/skyscraper/robot_description" command="$(find xacro)/xacro --inorder $(find pan_and_tilt_description)/models/skyscraper_urdf/skyscraper.xacro" />
+	<param name="skyscraper_description" textfile="$(find pan_and_tilt_description)/models/skyscraper_urdf/skyscraper.urdf"/>
+	<node pkg="tf" type="static_transform_publisher" name="skyscraper_pos" args="0.0 1.75 -$(arg building_height) 0 0 0 world /base_link 100"/>
 
 </launch>

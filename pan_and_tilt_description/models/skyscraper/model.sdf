@@ -9,7 +9,6 @@
 		<geometry>
 			<mesh>
 				<uri>model://skyscraper/meshes/skyscraper.dae</uri>
-				<scale>.01 .01 .01</scale>
 			</mesh>
 		</geometry>
 	</visual>

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot name="skyscraper">    
+    <link name="base_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<mesh filename="package://pan_and_tilt_description/models/skyscraper/meshes/skyscraper.dae">
+			</geometry>
+        </visual>
+    </link>
+</robot>

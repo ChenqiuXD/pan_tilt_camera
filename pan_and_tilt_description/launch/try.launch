@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	<param name="robot_description" textfile="$(find pan_and_tilt_description)/models/skyscraper_urdf/skyscraper.urdf"/>
+	<node name="rviz" pkg="rviz" type="rviz" />
+	 <node pkg="tf" type="static_transform_publisher" name="second_pos" args="0.0 1.5 0 0 0 0 world /base_link 100"/>
+</launch>
