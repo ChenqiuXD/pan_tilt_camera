@@ -2,21 +2,22 @@
 import rospy
 import numpy as np
 
-from src.pan_and_tilt_description.scripts import ControllerManager
-from src.pan_and_tilt_description.scripts import MarkerManager
-from src.pan_and_tilt_description.scripts import Optimization
-# import ControllerManager
-# import MarkerManager
-# import Optimization
+# from src.pan_and_tilt_description.scripts import ControllerManager
+# from src.pan_and_tilt_description.scripts import MarkerManager
+# from src.pan_and_tilt_description.scripts import Optimization
+import ControllerManager
+import MarkerManager
+import Optimization
 from scipy.spatial import SphericalVoronoi
 
 rospy.init_node("main")
 rate = rospy.Rate(1)
 
 # initialization
-droneArg = [[20, 0.23, 0.34, 1],
-            [20.3, 1.5, 0.34, 1],
-            [20.9, 0, 0, 1]]
+RADIUS = 100 # The radius of the detection area (a half-ball)
+droneArg = [[RADIUS, 0.23, 0.34, 1],
+            [RADIUS, 1.5, 0.34, 1],
+            [RADIUS, 0, 0, 1]]
 numofCamera = 4
 droneList = MarkerManager.addDrones(droneArg)
 ctrlManager = ControllerManager.ControllerManager(numofCamera)
@@ -41,7 +42,7 @@ while not rospy.is_shutdown():
         for i in range(numofCamera):
             # camera state
             state[i] = ctrlManager.getState(i)
-            points[i] = 20 * MarkerManager.spher2cart(state[i])
+            points[i] = RADIUS * MarkerManager.spher2cart(state[i])
             points[numofCamera + i][2] = -points[i][2]
             points[numofCamera + i][1] = points[i][1]
             points[numofCamera + i][0] = points[i][0]
@@ -76,7 +77,7 @@ while not rospy.is_shutdown():
 
         # display the Voronoi regions
         center = np.array([0, 0, 0])
-        sv = SphericalVoronoi(points, 20, center)
+        sv = SphericalVoronoi(points, RADIUS, center)
         MarkerManager.adddisplay(points)
         print("H_function:", Optimization.H(state))
         rate.sleep()

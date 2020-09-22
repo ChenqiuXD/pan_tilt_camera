@@ -7,7 +7,7 @@
   <arg name="pause" default="false"/>
   <arg name="verbose" default="true"/>
   <!-- The height of the skyscraper -->
-  <arg name="building_height" default="11.75"/>
+  <arg name="building_height" default="116.8"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find pan_and_tilt_description)/worlds/factory.world"/>
@@ -102,6 +102,6 @@
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find pan_and_tilt_description)/config/view.rviz" required="true" output="screen"/>
 
 	<param name="skyscraper_description" textfile="$(find pan_and_tilt_description)/models/skyscraper_urdf/skyscraper.urdf"/>
-	<node pkg="tf" type="static_transform_publisher" name="skyscraper_pos" args="0.0 1.75 -$(arg building_height) 0 0 0 world /base_link 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="skyscraper_pos" args="0.0 12 -$(arg building_height) 0 0 0 world /base_link 100"/>
 
 </launch>

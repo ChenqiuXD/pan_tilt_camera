@@ -3,7 +3,8 @@ from math import pi, sqrt, cos, sin, exp, acos
 import numpy as np
 import spherical_geometry.polygon as sg
 import multiprocessing
-from src.pan_and_tilt_description.scripts import MarkerManager
+# from src.pan_and_tilt_description.scripts import MarkerManager
+import MarkerManager
 
 # GPU related module
 from numba import jit
@@ -12,8 +13,8 @@ from numba import jit
 a = np.pi/6
 # b represent the max value of angle derivation in the tilt/pitch direction
 b = np.pi/6*(640/480)
-radius=20
-DIST_THRESH = 1.5
+radius = 100
+DIST_THRESH = 5
 
 @jit(nopython=True)
 def Perf0(q, p, partialp=False, theta=False, fan=False):
@@ -73,8 +74,8 @@ def H(p):
         randtheta = np.arccos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
         q = np.array([randtheta, randphi])
-        result = result + H_multiprocess(p,q)
-    ave = result*1.0/N
+        result += H_multiprocess(p,q)
+    ave = result * 1.0 / N
     result = area*ave
     return result
 
@@ -103,6 +104,7 @@ def H_multiprocess(p, q):
 @jit(nopython=True)
 def integral_surface(p,x_theta,x_phi,theta):
     """
+    Calculating a specific Monte Carlo point surface integral (point : [x_theta, x_phi]).
     theta is true for theta, and is false for phi
     """
     q_sphere = np.array([x_theta, x_phi])
@@ -132,10 +134,23 @@ def integral_surface(p,x_theta,x_phi,theta):
 
 @jit(nopython=True)
 def integral_line(q_l_1,q_l_2):
+    """ Calculate a specific Monte Carlo point line integral """
     return np.array([-phi(q_l_1), phi(q_l_2)])
 
 @jit(nopython=True)
 def calcSurfaceIntegral(u, v, N, p, isTheta):
+    """
+    Parameters
+    ----------
+    u       :   random numbers from 0-1, len = N 
+    v       :   random numbers from 0.5-1, len = N
+    N       :   length of random numbers. Number of Monte Carlo sampling points
+    p       :   each value represents a angle of joint. cam_num*2 matrix
+    isTheta :   True for calculating partial for theta, False for phi
+    Returns
+    -------
+    Surface integral calculated by Monte Carlo methods with totally N sampling points
+    """
     num_cam = len(p)
     count = np.zeros(shape=(num_cam, 1))
     sum = np.zeros(shape=(num_cam, 1))
@@ -143,13 +158,25 @@ def calcSurfaceIntegral(u, v, N, p, isTheta):
         randtheta = np.arccos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
         first_term, min_i = integral_surface(p,randtheta,randphi,isTheta)
-        count[min_i] = count[min_i] + 1
+        count[min_i] += 1
         sum[min_i] += first_term
     ave_s = sum / count
     return ave_s
 
 @jit(nopython=True)
 def calcLineIntegral(u, v, N, p, arc_list):
+    """
+    Parameters
+    ----------
+    u       :   random numbers from 0-1, len = N 
+    v       :   random numbers from 0.5-1, len = N
+    N       :   length of random numbers. Number of Monte Carlo sampling points
+    p       :   each value represents a angle of joint. cam_num*2 matrix
+    arc_list:   the four points of camera in the sphere coordinate (represents in angles). cam_num*4 matrix
+    Returns
+    -------
+    Line integral calculated by Monte Carlo methods with totally N sampling points
+    """
     M=int(N/4)
     num_cam = len(p)
     l_phi = np.zeros(shape=(num_cam, M))
@@ -172,16 +199,6 @@ def calcLineIntegral(u, v, N, p, arc_list):
         k[j] = Perf0(np.array([maxt, p[j,1]]), p[j]) - Perf1(np.array([maxt, p[j,1]]), p[j])  # f1-f2
     
     return ave_l, length, k
-
-@jit(nopython=True)
-def average_2d(array):
-    sum = 0.0
-    count = 0.0
-    for i in array:
-        for j in i:
-            sum += j
-            count += 1
-    return sum/count
 
 def partialH_theta(p, poly_list, arc_list):
     """
@@ -209,7 +226,7 @@ def partialH_theta(p, poly_list, arc_list):
         poly_area[j]=polygon[j].area()
 
     # surface integral
-    ave_s = calcSurfaceIntegral(u, v, N, p, True)
+    ave_s = calcSurfaceIntegral(u, v, N, p, isTheta=True)
 
     # line integral
     ave_l, length, k = calcLineIntegral(u, v, N, p, arc_list)
@@ -243,7 +260,7 @@ def partialH_varphi(p, poly_list, arc_list):
         poly_area[j]=polygon[j].area()
 
     # surface integral
-    ave_s = calcSurfaceIntegral(u, v, N, p, False)
+    ave_s = calcSurfaceIntegral(u, v, N, p, isTheta=False)
 
     # line integral
     ave_l, length, k = calcLineIntegral(u, v, N, p, arc_list)
@@ -303,9 +320,9 @@ def phi(q):
     -------
     the prob of drone occuring at q. With the drone occuring probability already known at certain place
     """
-    droneArg = [[20, 0.23, 0.34, 1.0],
-                [20.3, 1.5, 0.34, 1.0],
-                [20.9, 0, 0, 1.0]]
+    droneArg = [[100, 0.23, 0.34, 1.0],
+                [100, 1.5, 0.34, 1.0],
+                [100, 0, 0, 1.0]]
     prob = 0
     for drone in droneArg:
         # Calculate distance
@@ -321,3 +338,14 @@ def phi(q):
         else:
             continue
     return prob
+
+
+@jit(nopython=True)
+def average_2d(array):
+    sum = 0.0
+    count = 0.0
+    for i in array:
+        for j in i:
+            sum += j
+            count += 1
+    return sum/count
