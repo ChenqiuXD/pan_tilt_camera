@@ -2,12 +2,12 @@
 import rospy
 import numpy as np
 
-# from src.pan_and_tilt_description.scripts import ControllerManager
-# from src.pan_and_tilt_description.scripts import MarkerManager
-# from src.pan_and_tilt_description.scripts import Optimization
-import ControllerManager
-import MarkerManager
-import Optimization
+from src.pan_and_tilt_description.scripts import ControllerManager
+from src.pan_and_tilt_description.scripts import MarkerManager
+from src.pan_and_tilt_description.scripts import Optimization
+# import ControllerManager
+# import MarkerManager
+# import Optimization
 from scipy.spatial import SphericalVoronoi
 
 rospy.init_node("main")

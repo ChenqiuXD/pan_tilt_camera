@@ -3,7 +3,7 @@ from math import pi, sqrt, cos, sin, exp, acos
 import numpy as np
 import spherical_geometry.polygon as sg
 import multiprocessing
-import MarkerManager
+from src.pan_and_tilt_description.scripts import MarkerManager
 
 # GPU related module
 from numba import jit
@@ -20,12 +20,12 @@ def Perf0(q, p, partialp=False, theta=False, fan=False):
     # q and p is a vector in spherical coordinate
     matrix_a = np.array([[1, 0], [0, 1]])
     if not partialp:
-        return -(np.linalg.norm(matrix_a * (q - p), np.inf)) ** 2
+        return -(np.max(np.abs(matrix_a * (q - p)))) ** 2
     else:
         if theta:
-            return 2 * (np.linalg.norm(matrix_a * (q - p), np.inf)) * np.sign(q[1] - p[1])
+            return 2 * np.max(np.abs(matrix_a * (q - p))) * np.sign(q[1] - p[1])
         elif fan:
-            return 2 * (np.linalg.norm(matrix_a * (q - p), np.inf)) * np.sign(q[0] - p[0])
+            return 2 * np.max(np.abs(matrix_a * (q - p))) * np.sign(q[0] - p[0])
         else:
             # raise Exception("Parameter is not chosen. Please choose theta or phi ")
             return 0
@@ -36,12 +36,12 @@ def Perf1(q, p, partialp=False, theta=False, fan=False):
     epsilon = 0.2
     matrix_b = epsilon*np.array([[1, 0], [0, 1]])
     if not partialp:
-        return -(np.linalg.norm(matrix_b * (q - p), np.inf)) ** 2
+        return -(np.max(np.abs(matrix_b * (q - p)))) ** 2
     else:
         if theta:
-            return 2 * (np.linalg.norm(matrix_b * (q - p), np.inf)) * np.sign(q[1] - p[1])
+            return 2 * (np.max(np.abs(matrix_b * (q - p)))) * np.sign(q[1] - p[1])
         elif fan:
-            return 2 * (np.linalg.norm(matrix_b * (q - p), np.inf)) * np.sign(q[0] - p[0])
+            return 2 * (np.max(np.abs(matrix_b * (q - p)))) * np.sign(q[0] - p[0])
         else:
             # raise Exception("Parameter is not chosen. Please choose theta or phi ")
             return 0
@@ -49,14 +49,14 @@ def Perf1(q, p, partialp=False, theta=False, fan=False):
 @jit(nopython=True)
 def Perf(q, p):
     # q and p is a vector in spherical coordinate
-    if abs(q[0] - p[0]) > b or abs(q[1] - p[1]) > a:
+    if np.abs(q[0] - p[0]) > b or np.abs(q[1] - p[1]) > a:
         return Perf1(q, p)
     else:
         return Perf0(q, p)
 
 @jit(nopython=True)
 def PPerf(q, p, thetap=False, phip=False):
-    if abs(q[0] - p[0]) > b or abs(q[1] - p[1]) > a:
+    if np.abs(q[0] - p[0]) > b or np.abs(q[1] - p[1]) > a:
         return Perf1(q, p, True, thetap, phip)
     else:
         return Perf0(q, p, True, thetap, phip)
@@ -64,7 +64,7 @@ def PPerf(q, p, thetap=False, phip=False):
 @jit(nopython=True)
 def H(p):
     area = 2*pi*radius**2
-    N=40000
+    N=60000
     u = np.random.uniform(0, 1, N)
     v = np.random.uniform(1/2,1,N)
     # Compute the average of function and the area of sphere
@@ -73,7 +73,7 @@ def H(p):
         randtheta = np.arccos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
         q = np.array([randtheta, randphi])
-        result += H_multiprocess(p,q)
+        result = result + H_multiprocess(p,q)
     ave = result*1.0/N
     result = area*ave
     return result
@@ -135,15 +135,15 @@ def integral_line(q_l_1,q_l_2):
     return np.array([-phi(q_l_1), phi(q_l_2)])
 
 @jit(nopython=True)
-def calcSurfaceIntegral(u, v, N, p):
+def calcSurfaceIntegral(u, v, N, p, isTheta):
     num_cam = len(p)
     count = np.zeros(shape=(num_cam, 1))
     sum = np.zeros(shape=(num_cam, 1))
     for i in range(N):
         randtheta = np.arccos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
-        first_term, min_i = integral_surface(p,randtheta,randphi,True)
-        count[min_i] += 1
+        first_term, min_i = integral_surface(p,randtheta,randphi,isTheta)
+        count[min_i] = count[min_i] + 1
         sum[min_i] += first_term
     ave_s = sum / count
     return ave_s
@@ -195,7 +195,7 @@ def partialH_theta(p, poly_list, arc_list):
     the partial of objective function
     """
     # monto carlo method to solve the surface integral
-    N = 40000
+    N = 60000
     u = np.random.uniform(0, 1, N)
     v = np.random.uniform(1 / 2, 1, N)
     
@@ -209,7 +209,7 @@ def partialH_theta(p, poly_list, arc_list):
         poly_area[j]=polygon[j].area()
 
     # surface integral
-    ave_s = calcSurfaceIntegral(u, v, N, p)
+    ave_s = calcSurfaceIntegral(u, v, N, p, True)
 
     # line integral
     ave_l, length, k = calcLineIntegral(u, v, N, p, arc_list)
@@ -229,7 +229,7 @@ def partialH_varphi(p, poly_list, arc_list):
     the partial of objective function
     """
     # monto carlo method to solve the surface integral
-    N = 40000
+    N = 60000
     u = np.random.uniform(0, 1, N)
     v = np.random.uniform(1 / 2, 1, N)
 
@@ -243,7 +243,7 @@ def partialH_varphi(p, poly_list, arc_list):
         poly_area[j]=polygon[j].area()
 
     # surface integral
-    ave_s = calcSurfaceIntegral(u, v, N, p)
+    ave_s = calcSurfaceIntegral(u, v, N, p, False)
 
     # line integral
     ave_l, length, k = calcLineIntegral(u, v, N, p, arc_list)
