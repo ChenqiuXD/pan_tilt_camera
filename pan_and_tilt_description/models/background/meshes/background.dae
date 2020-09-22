@@ -3,10 +3,10 @@
   <asset>
     <contributor>
       <author>Blender User</author>
-      <authoring_tool>Blender 2.83.5 commit date:2020-08-19, commit time:06:07, hash:c2b144df395f</authoring_tool>
+      <authoring_tool>Blender 2.90.0 commit date:2020-08-31, commit time:11:26, hash:0330d1af29c0</authoring_tool>
     </contributor>
-    <created>2020-08-28T15:32:43</created>
-    <modified>2020-08-28T15:32:43</modified>
+    <created>2020-09-22T20:42:09</created>
+    <modified>2020-09-22T20:42:09</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -111,7 +111,7 @@
   <library_visual_scenes>
     <visual_scene id="Scene" name="Scene">
       <node id="Sphere" name="Sphere" type="NODE">
-        <matrix sid="transform">0.9355611 0 0 0 0 0.9355611 0 0 0 0 0.9355611 0 0 0 0 1</matrix>
+        <matrix sid="transform">4.801481 0 0 0 0 4.801481 0 0 0 0 4.801481 0 0 0 0 1</matrix>
         <instance_geometry url="#Sphere-mesh" name="Sphere">
           <bind_material>
             <technique_common>

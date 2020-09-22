@@ -7,7 +7,7 @@ import os.path
 
 def addHeatmaps(droneList):
     # Building height. Plz see main_sim.launch for detail
-    HEIGHT = 11.75
+    HEIGHT = 116.8
 
     print("Waiting for gazebo services...")
     rospy.wait_for_service("/gazebo/spawn_sdf_model")

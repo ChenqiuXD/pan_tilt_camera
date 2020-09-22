@@ -41,7 +41,7 @@ class MarkerManager:
         self.pub = rospy.Publisher("visualization_marker", Marker, queue_size=10)
         self.marker = Marker()
         self.RADIUS = RADIUS
-        self.GAP = 0.15
+        self.GAP = 0.05
         self.COEF = 100.0
         self.DIST_THRESH = 5
         self.cameras = []

@@ -11,12 +11,12 @@
 
     <include>
         <uri>model://background</uri>
-		<pose>0.0 0 11.75 0.0 0.0 0.0 </pose>
+		<pose>0.0 0 116.8 0.0 0.0 0.0 </pose>
     </include>
 
     <include>
         <uri>model://skyscraper</uri>
-		<pose>0.0 1.75 0.0 0.0 0.0 0.0 </pose>
+		<pose>0.0 12 0.0 0.0 0.0 0.0 </pose>
     </include>
   </world>
 </sdf>
