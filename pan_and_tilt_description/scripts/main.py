@@ -21,7 +21,7 @@ droneArg = [[RADIUS, 0.23, 0.34, 1],
 numofCamera = 4
 droneList = MarkerManager.addDrones(droneArg)
 ctrlManager = ControllerManager.ControllerManager(numofCamera)
-dispManager = MarkerManager.MarkerManager(droneList)
+markerManager = MarkerManager.MarkerManager(droneList, numofCamera)
 points = np.zeros(shape=(2 * numofCamera, 3))
 state = np.zeros(shape=(numofCamera, 2))
 count = 0
@@ -30,8 +30,12 @@ ControllerManager.stateReset(ctrlManager)
 rospy.sleep(0.1)
 
 # Draw the half-ball and red area (which represent the probability of drones occuring there)
-dispManager.display()
+print("MarkerManager display the half-ball")
+markerManager.display()
 print("Start main loop")
+# 'test.txt' file is used to store the H values
+f = open('test.txt', 'w')
+
 while not rospy.is_shutdown():
     count = count + 1
     try:
@@ -41,7 +45,8 @@ while not rospy.is_shutdown():
         print("Getting camera state")
         for i in range(numofCamera):
             # camera state
-            state[i] = ctrlManager.getState(i)
+            state[i] = ctrlManager.getState(i)  # Get camera state
+            markerManager.cameras.getAngle(state[i], i) # Update camera state in MarkerManager
             points[i] = RADIUS * MarkerManager.spher2cart(state[i])
             points[numofCamera + i][2] = -points[i][2]
             points[numofCamera + i][1] = points[i][1]
@@ -75,11 +80,23 @@ while not rospy.is_shutdown():
         #     speeds[1] = 5
             ctrlManager.multimanipulate(speeds)
 
+        # display the camera cone
+        markerManager.cameras.pub_range()
+
         # display the Voronoi regions
         center = np.array([0, 0, 0])
         sv = SphericalVoronoi(points, RADIUS, center)
         MarkerManager.adddisplay(points)
-        print("H_function:", Optimization.H(state))
+        H_value = Optimization.H(state)
+        print("H_function:", H_value)
+        
+        # Write H value to test.txt file
+        f.write(str(H_value))
+        f.write(', ')
+
         rate.sleep()
     except rospy.exceptions.ROSInterruptException:
+        f.close()
         rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
+
+    # f.close()

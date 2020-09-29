@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from visualization_msgs.msg import Marker
+from sensor_msgs.msg import Range
 from geometry_msgs.msg import Point
 from std_msgs.msg import ColorRGBA
 from math import pi, sqrt, cos, sin, exp
@@ -35,16 +36,45 @@ class Drone:
         else:
             raise Exception("Data type of pose in calDist is wrong.")
 
+class Cameras:
+    def __init__(self, numofCamera):
+        self.angles = np.zeros([4,2])    # A matrix : cam_num * 2
+        self.radius = RADIUS * 0.8   # The range of the cone (length)
+        self.field_of_view = 0.174  # in radian, pi/6
+        self.num_cam = numofCamera
+
+        # Instantiate the publishers
+        self.pubs = [0] * self.num_cam     # Four element, each is a publisher.
+        for i in range(self.num_cam):
+            topic_name = "camera_range_" + str(i)
+            self.pubs[i] = rospy.Publisher(topic_name, Range, queue_size=10)
+
+    def getAngle(self, cam_angle, i):
+        # Get the angels from Controller Manager in main.py
+        self.angles[i] = cam_angle    
+
+    def pub_range(self):
+        rang_msg = Range()
+        for i in range(self.num_cam):
+            rang_msg.header.stamp = rospy.Time.now()
+            frame_id = "robot"+str(i+1)+"/camera_link"
+            rang_msg.header.frame_id = frame_id
+            rang_msg.field_of_view =  self.field_of_view # 0-ULTRASOUND, 1-INFRARED
+            rang_msg.min_range = 0.1    # min_range of sonar, useless here
+            rang_msg.max_range = 201    # max_range of sonar, useless here
+            rang_msg.range = self.radius
+            self.pubs[i].publish(rang_msg)
+
 class MarkerManager:
     """Manage the half-ball markers to show different possibility of seeing droens. """
-    def __init__(self, droneList):
+    def __init__(self, droneList, numofCamera):
         self.pub = rospy.Publisher("visualization_marker", Marker, queue_size=10)
         self.marker = Marker()
         self.RADIUS = RADIUS
         self.GAP = 0.05
         self.COEF = 100.0
         self.DIST_THRESH = 5
-        self.cameras = []
+        self.cameras = Cameras(numofCamera)
         self.drones = droneList
 
     def setConstantArg(self):
