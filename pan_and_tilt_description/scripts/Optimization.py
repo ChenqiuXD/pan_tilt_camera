@@ -286,7 +286,6 @@ def controller(p, v_list, fov_list):
     """
     a = np.zeros(shape=(len(p),1))
     for i in range(len(p)):
-        # BUG : a[i] should be 1.0/sin(p[i,0])
         a[i] = 1.0 / sin(p[i,0])
     angle_r_pitch = a * partialH_varphi(p, v_list, fov_list)
     angle_r_yaw = partialH_theta(p, v_list, fov_list)
