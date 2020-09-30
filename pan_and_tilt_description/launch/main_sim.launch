@@ -30,8 +30,8 @@
       <arg name="xacro_robot_file" value="$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
       <arg name="robot_name" value="/robot1" />
       <!-- unit of init angles : radian -->
-      <arg name="init_yaw_angle" value="0.57"/> 
-      <arg name="init_pitch_angle" value="0.13"/>
+      <arg name="init_yaw_angle" value="0"/> 
+      <arg name="init_pitch_angle" value="0"/>
     </include>
     <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch">
       <arg name="namespace" value="/robot1"/>
@@ -70,8 +70,8 @@
       <arg name="xacro_robot_file" value="$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
       <arg name="robot_name" value="/robot3" />
       <!-- unit of init angles : radian -->
-      <arg name="init_yaw_angle" value="-1.57"/>
-      <arg name="init_pitch_angle" value="0.57"/>
+      <arg name="init_yaw_angle" value="0.0"/>
+      <arg name="init_pitch_angle" value="0.0"/>
     </include>
     <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch">
       <arg name="namespace" value="/robot3"/>
@@ -90,8 +90,8 @@
       <arg name="xacro_robot_file" value="$(find pan_and_tilt_description)/robot/pan_and_tilt.xacro" />
       <arg name="robot_name" value="/robot4" />
       <!-- unit of init angles : radian -->
-      <arg name="init_yaw_angle" value="-0.2"/>
-      <arg name="init_pitch_angle" value="0.4"/>
+      <arg name="init_yaw_angle" value="-0.0"/>
+      <arg name="init_pitch_angle" value="0.0"/>
     </include>
     <include file="$(find pan_and_tilt_description)/launch/control_pan_and_tilt.launch">
       <arg name="namespace" value="/robot4"/>

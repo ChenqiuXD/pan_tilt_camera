@@ -142,14 +142,15 @@ def calcSurfaceIntegral(u, v, N, p, isTheta):
     """
     Parameters
     ----------
-    u       :   random numbers from 0-1, len = N 
-    v       :   random numbers from 0.5-1, len = N
-    N       :   length of random numbers. Number of Monte Carlo sampling points
-    p       :   each value represents a angle of joint. cam_num*2 matrix
-    isTheta :   True for calculating partial for theta, False for phi
+    u       :   random numbers from 0-1, len = N   
+    v       :   random numbers from 0.5-1, len = N  
+    N       :   length of random numbers. Number of Monte Carlo sampling points  
+    p       :   each value represents a angle of joint. cam_num*2 matrix  
+    isTheta :   True for calculating partial for theta, False for phi  
     Returns
     -------
-    Surface integral calculated by Monte Carlo methods with totally N sampling points
+    Surface integral calculated by Monte Carlo methods with total N sampling points  
+    ave_s : float  
     """
     num_cam = len(p)
     count = np.zeros(shape=(num_cam, 1))
@@ -168,14 +169,17 @@ def calcLineIntegral(u, v, N, p, arc_list):
     """
     Parameters
     ----------
-    u       :   random numbers from 0-1, len = N 
-    v       :   random numbers from 0.5-1, len = N
-    N       :   length of random numbers. Number of Monte Carlo sampling points
-    p       :   each value represents a angle of joint. cam_num*2 matrix
-    arc_list:   the four points of camera in the sphere coordinate (represents in angles). cam_num*4 matrix
+    u       :   random numbers from 0-1, len = N   
+    v       :   random numbers from 0.5-1, len = N  
+    N       :   length of random numbers. Number of Monte Carlo sampling points  
+    p       :   each value represents a angle of joint. cam_num*2 matrix  
+    arc_list:   the four points of camera in the sphere coordinate (represents in angles). cam_num*4 matrix  
     Returns
     -------
-    Line integral calculated by Monte Carlo methods with totally N sampling points
+    Line integral calculated by Monte Carlo methods with totally N/4 sampling points  
+    ave_l : 4*1 vector  
+    length : 4*1 vector   
+    k : 4*1 vector  
     """
     M=int(N/4)
     num_cam = len(p)
@@ -194,7 +198,6 @@ def calcLineIntegral(u, v, N, p, arc_list):
             q_l_1 = radius * spher2cart(np.array([mint, l_phi[j][i]]))
             q_l_2 = radius * spher2cart(np.array([maxt, l_phi[j][i]]))
             result_lin.append(integral_line(q_l_1, q_l_2))
-        # result_lin_reshape = result_lin.reshape(result_lin.shape[0] * result_lin.shape[1])
         ave_l[j] = average_2d(result_lin)
         k[j] = Perf0(np.array([maxt, p[j,1]]), p[j]) - Perf1(np.array([maxt, p[j,1]]), p[j])  # f1-f2
     
@@ -204,9 +207,9 @@ def partialH_theta(p, poly_list, arc_list):
     """
     Parameters
     ----------
-    p       :   points spherical-coordinate (theta phi)
-    poly_list:  a list of cartesian-coordinates points on the boundary of polygon
-    arc_list:   a list of arcs of FOV
+    p       :   points spherical-coordinate (theta phi)  
+    poly_list:  a list of cartesian-coordinates points on the boundary of polygon  
+    arc_list:   a list of arcs of FOV  
     Returns
     -------
     the partial of objective function
@@ -238,12 +241,13 @@ def partialH_varphi(p, poly_list, arc_list):
     """
     Parameters
     ----------
-    p       :   points spherical-coordinate (theta phi)
-    poly_list:  a list of cartesian-coordinates points on the boundary of voronoi polygon
-    arc_list:   a list of arcs of FOV
+    p       :   points spherical-coordinate (theta phi)  
+    poly_list:  a list of cartesian-coordinates points on the boundary of voronoi polygon  
+    arc_list:   a list of arcs of FOV  
     Returns
     -------
     the partial of objective function
+    result: 4*1 vector  
     """
     # monto carlo method to solve the surface integral
     N = 60000
@@ -282,7 +286,8 @@ def controller(p, v_list, fov_list):
     """
     a = np.zeros(shape=(len(p),1))
     for i in range(len(p)):
-        a[i] = sin(p[i,0])
+        # BUG : a[i] should be 1.0/sin(p[i,0])
+        a[i] = 1.0 / sin(p[i,0])
     angle_r_pitch = a * partialH_varphi(p, v_list, fov_list)
     angle_r_yaw = partialH_theta(p, v_list, fov_list)
     angle_r = np.append(angle_r_pitch, angle_r_yaw, axis=1)
@@ -320,9 +325,10 @@ def phi(q):
     -------
     the prob of drone occuring at q. With the drone occuring probability already known at certain place
     """
-    droneArg = [[100, 0.23, 0.34, 1.0],
-                [100, 1.5, 0.34, 1.0],
-                [100, 0, 0, 1.0]]
+    RADIUS = 100
+    droneArg = [[RADIUS, 0.23, 0.34, 1.0],
+                [RADIUS, 1.5, 0.34, 1.0],
+                [RADIUS, 0, 0, 1.0]]
     prob = 0
     for drone in droneArg:
         # Calculate distance

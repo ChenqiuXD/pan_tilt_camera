@@ -1,3 +1,4 @@
 CMakeLists.txt
 pan_and_tilt_description/scripts/__pycache__
+pan_and_tilt_description/scripts/test*
 

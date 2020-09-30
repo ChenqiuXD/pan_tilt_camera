@@ -49,7 +49,7 @@ class Cameras:
             topic_name = "camera_range_" + str(i)
             self.pubs[i] = rospy.Publisher(topic_name, Range, queue_size=10)
 
-    def getAngle(self, cam_angle, i):
+    def setAngle(self, cam_angle, i):
         # Get the angels from Controller Manager in main.py
         self.angles[i] = cam_angle    
 
@@ -140,6 +140,25 @@ class MarkerManager:
 
         self.pub.publish(self.marker)
 
+    def easy_display(self):
+        """ The display function is too time-consuming, therefore a easy_display is adapted which only display
+        the red points """
+        self.setConstantArg()
+        self.marker.scale.x = 2.0
+        for drone in self.drones:
+            spher_pos = np.array([drone.alpha, drone.theta])
+            cart_pos = spher2cart_nopi(spher_pos) * drone.len
+            pose = Point()
+            pose.x = cart_pos[0]
+            pose.y = cart_pos[1]
+            pose.z = cart_pos[2]
+            self.marker.points.append(pose)
+            color = ColorRGBA()
+            color.r = 1.0
+            color.a = 1.0
+            self.marker.colors.append(color)
+        self.pub.publish(self.marker)
+
 def cart2spher(points):
     """x y z to theta phi"""
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
@@ -156,6 +175,14 @@ def spher2cart(points):
     z=np.cos(points[0])
     y=np.sin(points[0])*np.sin(points[1]-pi/2)
     x=np.sin(points[0])*np.cos(points[1]-pi/2)
+    result= np.array([x,y,z])
+    return result
+
+def spher2cart_nopi(points):
+    """theta phi to x y z"""
+    z=np.cos(points[0])
+    y=np.sin(points[0])*np.sin(points[1])
+    x=np.sin(points[0])*np.cos(points[1])
     result= np.array([x,y,z])
     return result
 
@@ -216,8 +243,6 @@ def adddisplay(points):
     result_v = addVoronoi(points)
     result = result_v
     storepoint=[]
-    # result_C = addCamerafield(points, 0.148*pi, pi/12)
-    # result = np.concatenate((result_v, result_C),axis=0)
     for i in range(len(result)):
         for j in range(len(result[i])):
             point = Point()

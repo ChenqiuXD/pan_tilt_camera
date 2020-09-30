@@ -33,8 +33,8 @@ class ControllerManager:
             rospy.logerr(
                 "The length of speeds is not 2 (yaw and pitch repectively) in ControllerManager's manipulate function.")
         else:
-            self.yawPubs[CameraID].publish(speeds[1])
             self.pitchPubs[CameraID].publish(speeds[0])
+            self.yawPubs[CameraID].publish(speeds[1])
 
     def multimanipulate(self, speeds):
         """send speeds command to multi cameras"""
@@ -43,47 +43,40 @@ class ControllerManager:
             self.manipulate(speeds[i], i)
 
     def getState(self, cameraID):
-        """ get pitch,yaw of camera """
+        """ get [pitch,yaw] of camera of robot -- cameraID+1 th robot"""
         state = self.jointStates[cameraID]
         return state
 
-    def getImageState(self, cameraID):
-        sum_prob = []
-        return sum_prob
+    def stateSet(self ,id, state):
+        """ Set the id+1 th camera to state"""
+        state_m = self.getState(id)
+        rate = rospy.Rate(100)
+        k = 5
+        tor=0.0001
+        while not (np.linalg.norm((state_m-state)) <= tor or rospy.is_shutdown()):
+            try:
+                state_m = self.getState(id)
+                speed = np.array([ k*(state[0]-state_m[0]), k*(state[1]-state_m[1])])
+                self.manipulate(speed, id)
+                rate.sleep()
+            except rospy.exceptions.ROSInterruptException:
+                rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
+        self.manipulate(np.zeros(shape=(2,1)), id)
 
-
-def stateSet(ctrlManager,id, state):
-    """ Test the manipulate function: rotate four cameras in turn. 
-    NOTE that this function is only used for test"""
-    state_m = ctrlManager.getState(id)
-    rate = rospy.Rate(100)
-    k = 5
-    tor=0.0001
-    while not (np.linalg.norm((state_m-state)) <= tor or rospy.is_shutdown()):
-        try:
-            state_m = ctrlManager.getState(id)
-            speed = np.array([ k*(state[0]-state_m[0]), k*(state[1]-state_m[1])])
-            ctrlManager.manipulate(speed, id)
-            rate.sleep()
-        except rospy.exceptions.ROSInterruptException:
-            rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
-    ctrlManager.manipulate(np.zeros(shape=(2,1)), id)
-
-def stateReset(ctrlManager):
-    """ Function that reset all the joint to initial pose """
-    id =0
-    print("reset ", id + 1, "th robot")
-    stateSet(ctrlManager, id, state=np.array([1, 1 * (np.pi / 2)]))
-    id = 1
-    print("reset ", id + 1, "th robot")
-    stateSet(ctrlManager, id, state=np.array([1, 3 * (np.pi / 2)]))
-    id = 2
-    print("reset ", id + 1, "th robot")
-    stateSet(ctrlManager, id, state=np.array([1, 2 * (np.pi / 2)]))
-    id = 3
-    print("reset ", id + 1, "th robot")
-    stateSet(ctrlManager, id, state=np.array([1, 0 * (np.pi / 2)]))
-
+    def stateReset(self):
+        """ Function that reset all the joint to initial pose """
+        id = 0
+        print("reset ", id + 1, "th robot")
+        self.stateSet(id, state=np.array([1, 1 * (np.pi / 2)]))
+        id = 1
+        print("reset ", id + 1, "th robot")
+        self.stateSet(id, state=np.array([1, 3 * (np.pi / 2)]))
+        id = 2
+        print("reset ", id + 1, "th robot")
+        self.stateSet(id, state=np.array([1, 2 * (np.pi / 2)]))
+        id = 3
+        print("reset ", id + 1, "th robot")
+        self.stateSet(id, state=np.array([1, 0 * (np.pi / 2)]))
 
 
 if __name__ == "__main__":
@@ -104,7 +97,7 @@ if __name__ == "__main__":
             # stateReset(ctrlManager)
 
             # Test getState function
-            id = 1
+            id = 0
             print("Getting ", id, "State")
             ctrlManager.manipulate([0.2, -0.2], id)
             state = ctrlManager.getState(id)
