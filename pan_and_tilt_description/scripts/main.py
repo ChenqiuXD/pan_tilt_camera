@@ -37,7 +37,7 @@ f = open('test.txt', 'w')
 points = np.zeros(shape=(2 * numofCamera, 3))
 state = np.zeros(shape=(numofCamera, 2))
 count = 0
-while not rospy.is_shutdown():
+while not rospy.is_shutdown() and count <= 400:
     count = count + 1
     try:
         fov_list = []
@@ -75,7 +75,7 @@ while not rospy.is_shutdown():
         print("Controlling")
         if (count>1):
             speeds = Optimization.controller(state, voro_list, fov_list)
-            speeds *= 10
+            # speeds *= 10
             print("speeds are: \n", speeds)
         # # Saturation of speed
         # if speeds[0] >= 5:
@@ -102,3 +102,6 @@ while not rospy.is_shutdown():
     except rospy.exceptions.ROSInterruptException:
         f.close()
         rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
+
+if(count >= 400):
+    f.close()
