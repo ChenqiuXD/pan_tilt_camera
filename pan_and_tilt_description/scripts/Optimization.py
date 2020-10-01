@@ -3,8 +3,8 @@ from math import pi, sqrt, cos, sin, exp, acos
 import numpy as np
 import spherical_geometry.polygon as sg
 import multiprocessing
-# from src.pan_and_tilt_description.scripts import MarkerManager
-import MarkerManager
+from src.pan_and_tilt_description.scripts import MarkerManager
+# import MarkerManager
 
 # GPU related module
 from numba import jit

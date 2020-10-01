@@ -146,8 +146,8 @@ class MarkerManager:
         self.setConstantArg()
         self.marker.scale.x = 2.0
         for drone in self.drones:
-            spher_pos = np.array([drone.alpha, drone.theta])
-            cart_pos = spher2cart_nopi(spher_pos) * drone.len
+            spher_pos = np.array([drone.theta,drone.alpha])
+            cart_pos = spher2cart(spher_pos) * drone.len
             pose = Point()
             pose.x = cart_pos[0]
             pose.y = cart_pos[1]
@@ -164,17 +164,17 @@ def cart2spher(points):
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
     theta = np.arccos(points[2]/rho)
     if points[1] >= 0:
-        phi = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))+pi/2
+        phi = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
     else:
-        phi = pi+np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))+pi/2
+        phi = pi+np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
     result = np.array([theta, phi])
     return result
 
 def spher2cart(points):
     """theta phi to x y z"""
     z=np.cos(points[0])
-    y=np.sin(points[0])*np.sin(points[1]-pi/2)
-    x=np.sin(points[0])*np.cos(points[1]-pi/2)
+    y=np.sin(points[0])*np.sin(points[1])
+    x=np.sin(points[0])*np.cos(points[1])
     result= np.array([x,y,z])
     return result
 
@@ -187,10 +187,11 @@ def spher2cart_nopi(points):
     return result
 
 def addDrones(droneArg):
+    """droneList: radius,phi,theta,prob"""
     droneList = []
     if len(droneArg):
         for drone in droneArg:
-            droneList.append(Drone(drone[0], drone[1], drone[2], drone[3])) # add drone:radius,yaw,theta,prob
+            droneList.append(Drone(drone[0], drone[1], drone[2], drone[3])) # add drone:radius,phi,theta,prob
     else:
         rospy.logerr("No drone in the droneArg, please recheck your addDrones function")
     return droneList

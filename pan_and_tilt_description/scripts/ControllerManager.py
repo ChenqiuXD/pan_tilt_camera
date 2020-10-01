@@ -25,7 +25,9 @@ class ControllerManager:
 
     def callback(self, data, arg):
         cameraID = arg
-        self.jointStates[cameraID] = data.position
+        temp = data.position
+        self.jointStates[cameraID,1] = (temp[1]-np.pi/2)%(2*np.pi)
+        self.jointStates[cameraID,0] = temp[0]
 
     def manipulate(self, speeds, CameraID):
         """ send speeds [pitch, yaw] command to camera (specified by CameraID) """
@@ -48,7 +50,7 @@ class ControllerManager:
         return state
 
     def stateSet(self ,id, state):
-        """ Set the id+1 th camera to state"""
+        """ Set the id+1 th camera to state:theta,phi"""
         state_m = self.getState(id)
         rate = rospy.Rate(100)
         k = 5
@@ -67,16 +69,16 @@ class ControllerManager:
         """ Function that reset all the joint to initial pose """
         id = 0
         print("reset ", id + 1, "th robot")
-        self.stateSet(id, state=np.array([1, 1 * (np.pi / 2)]))
+        self.stateSet(id, state=np.array([1, 0 * (np.pi / 2)]))
         id = 1
         print("reset ", id + 1, "th robot")
-        self.stateSet(id, state=np.array([1, 3 * (np.pi / 2)]))
+        self.stateSet(id, state=np.array([1, 2 * (np.pi / 2)]))
         id = 2
         print("reset ", id + 1, "th robot")
-        self.stateSet(id, state=np.array([1, 2 * (np.pi / 2)]))
+        self.stateSet(id, state=np.array([1, 1 * (np.pi / 2)]))
         id = 3
         print("reset ", id + 1, "th robot")
-        self.stateSet(id, state=np.array([1, 0 * (np.pi / 2)]))
+        self.stateSet(id, state=np.array([1, 3 * (np.pi / 2)]))
 
 
 if __name__ == "__main__":

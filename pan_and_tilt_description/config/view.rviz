@@ -331,7 +331,7 @@ Visualization Manager:
       Marker Topic: /visualization_marker
       Name: Marker
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -409,7 +409,7 @@ Visualization Manager:
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
+    Background Color: 222; 222; 222
     Default Light: true
     Fixed Frame: world
     Frame Rate: 30
@@ -432,25 +432,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 428.932281
+      Distance: 0.135523438
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -11.9927731
-        Y: -19.375248
-        Z: 17.6359882
+        X: 113.035454
+        Y: -22.3286438
+        Z: 90.0293503
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.124796152
+      Pitch: 0.481943727
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.02898538
+      Yaw: 5.85000992
     Saved: ~
 Window Geometry:
   Displays:

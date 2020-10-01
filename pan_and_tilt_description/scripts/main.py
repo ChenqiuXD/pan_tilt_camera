@@ -2,12 +2,12 @@
 import rospy
 import numpy as np
 
-# from src.pan_and_tilt_description.scripts import ControllerManager
-# from src.pan_and_tilt_description.scripts import MarkerManager
-# from src.pan_and_tilt_description.scripts import Optimization
-import ControllerManager
-import MarkerManager
-import Optimization
+from src.pan_and_tilt_description.scripts import ControllerManager
+from src.pan_and_tilt_description.scripts import MarkerManager
+from src.pan_and_tilt_description.scripts import Optimization
+# import ControllerManager
+# import MarkerManager
+# import Optimization
 from scipy.spatial import SphericalVoronoi
 
 rospy.init_node("main")
@@ -15,9 +15,9 @@ rate = rospy.Rate(1)
 
 # initialization
 RADIUS = 100 # The radius of the detection area (a half-ball)
-droneArg = [[RADIUS, 0.23, 0.34, 1.0],
-            [RADIUS, 1.5, 0.34, 1.0],
-            [RADIUS, 0, 0, 1.0]]
+droneArg = [[RADIUS, 0, 1.3, 1.0],
+            [RADIUS, 0.8, 1.0, 1.0],
+            [RADIUS, 1.7, 1.5, 1.0]]
 numofCamera = 4
 droneList = MarkerManager.addDrones(droneArg)
 markerManager = MarkerManager.MarkerManager(droneList, numofCamera)
@@ -37,7 +37,7 @@ f = open('test.txt', 'w')
 points = np.zeros(shape=(2 * numofCamera, 3))
 state = np.zeros(shape=(numofCamera, 2))
 count = 0
-while not rospy.is_shutdown() and count <= 400:
+while not rospy.is_shutdown():
     count = count + 1
     try:
         fov_list = []
