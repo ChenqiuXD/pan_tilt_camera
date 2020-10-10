@@ -3,8 +3,8 @@ from math import pi, sqrt, cos, sin, exp, acos
 import numpy as np
 import spherical_geometry.polygon as sg
 import multiprocessing
-from src.pan_and_tilt_description.scripts import MarkerManager
-# import MarkerManager
+# from src.pan_and_tilt_description.scripts import MarkerManager
+import MarkerManager
 
 # GPU related module
 from numba import jit
@@ -325,9 +325,9 @@ def phi(q):
     the prob of drone occuring at q. With the drone occuring probability already known at certain place
     """
     RADIUS = 100
-    droneArg = [[RADIUS, 0.23, 0.34, 1.0],
-                [RADIUS, 1.5, 0.34, 1.0],
-                [RADIUS, 0, 0, 1.0]]
+    droneArg = [[RADIUS, 0, 1.3, 1.0],
+                [RADIUS, 0.8, 1.0, 1.0],
+                [RADIUS, 1.7, 1.5, 1.0]]
     prob = 0
     for drone in droneArg:
         # Calculate distance

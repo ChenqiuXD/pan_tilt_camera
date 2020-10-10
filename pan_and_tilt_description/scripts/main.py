@@ -2,12 +2,12 @@
 import rospy
 import numpy as np
 
-from src.pan_and_tilt_description.scripts import ControllerManager
-from src.pan_and_tilt_description.scripts import MarkerManager
-from src.pan_and_tilt_description.scripts import Optimization
-# import ControllerManager
-# import MarkerManager
-# import Optimization
+# from src.pan_and_tilt_description.scripts import ControllerManager
+# from src.pan_and_tilt_description.scripts import MarkerManager
+# from src.pan_and_tilt_description.scripts import Optimization
+import ControllerManager
+import MarkerManager
+import Optimization
 from scipy.spatial import SphericalVoronoi
 
 rospy.init_node("main")
@@ -76,7 +76,6 @@ while not rospy.is_shutdown():
         if (count>1):
             speeds = Optimization.controller(state, voro_list, fov_list)
             # speeds *= 10
-            print("speeds are: \n", speeds)
         # # Saturation of speed
         # if speeds[0] >= 5:
         #     speeds[0] = 5

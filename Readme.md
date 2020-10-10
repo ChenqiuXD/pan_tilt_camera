@@ -1,6 +1,11 @@
 # A pan-tilt camera  
 ## Overview  
 A pan and tilt camera used in gazebo. The robot is controlled by ROS's controller manager by pid methods. To examine the robot model, please read the 'robot' file and check out pan_and_tilt.xacro. Currently the joint is controlled directly by gazebo by changing velocity.   
+You can run the main.py or Manager.py to see the optimization algorithm.  
+If you wish to change drones' position, please change all the droneArg parameters in the following files:  
+Optimization.py line 328  
+main.py	line 19  
+Manager.py line 64  
 
 ## Prequisite
 Please copy the 'heatmap' and 'background' models to your gazebo local model database.  
