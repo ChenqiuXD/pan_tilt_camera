@@ -59,10 +59,10 @@ while not rospy.is_shutdown():
                 fov_list.append(np.array(
                                     # pi/6 is the "horizontal_fov" written in the body.xacro (robot model)
                                     # The first element is horizontal, the second is vertical
-                                    [[np.pi / 6 + state[i][1], np.pi / 6 * (640/480) + state[i][0]],
-                                     [np.pi / 6 - state[i][1], np.pi / 6 * (640/480) + state[i][0]],
-                                     [np.pi / 6 - state[i][1], np.pi / 6 * (640/480) - state[i][0]],
-                                     [np.pi / 6 + state[i][1], np.pi / 6 * (640/480) - state[i][0]]]))  
+                                    [[np.pi/6 + state[i][1], np.pi/6*(480/640) + state[i][0]],
+                                     [-np.pi/6 + state[i][1], np.pi/6*(480/640) + state[i][0]],
+                                     [-np.pi/6 + state[i][1], -np.pi/6*(480/640) + state[i][0]],
+                                     [np.pi/6 + state[i][1], -np.pi/6*(480/640) + state[i][0]]]))  
 
                 # compute ith camera Voronoi region (represented by lines)
                 voro_list_i = np.random.rand(0, 3)

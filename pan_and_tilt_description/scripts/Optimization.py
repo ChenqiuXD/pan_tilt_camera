@@ -1,5 +1,5 @@
 import rospy
-from math import pi, sqrt, cos, sin, exp, acos
+from math import pi, sqrt, cos, sin, tan, exp, acos
 import numpy as np
 import spherical_geometry.polygon as sg
 import multiprocessing
@@ -15,52 +15,67 @@ a = np.pi/6
 b = np.pi/6*(640/480)
 radius = 100
 DIST_THRESH = 5
+beta = 0.9
+alpha = 0.5
+
+@jit(nopython=True)
+def dist(q, p):
+    # Calculate the distance between q and p by its angle in between. q and p are 2*1 vector representing [pitch, yaw]
+    q_cart = spher2cart(q)
+    p_cart = spher2cart(p)
+    return acos(np.dot(p_cart,q_cart))
 
 @jit(nopython=True)
 def Perf0(q, p, partialp=False, theta=False, fan=False):
-    # q and p is a vector in spherical coordinate
-    matrix_a = np.array([[1, 0], [0, 1]])
-    if not partialp:
-        return -(np.max(np.abs(matrix_a * (q - p)))) ** 2
-    else:
-        if theta:
-            return 2 * np.max(np.abs(matrix_a * (q - p))) * np.sign(q[1] - p[1])
-        elif fan:
-            return 2 * np.max(np.abs(matrix_a * (q - p))) * np.sign(q[0] - p[0])
-        else:
-            # raise Exception("Parameter is not chosen. Please choose theta or phi ")
-            return 0
+    # q and p is a vector in spherical coordinate (inside -a~a and -b~b range)
+    prob = beta * exp( -alpha * dist(q, p)**2 )
+    return prob
 
 @jit(nopython=True)
 def Perf1(q, p, partialp=False, theta=False, fan=False):
-    # q and p is a vector in spherical coordinate
-    epsilon = 0.2
-    matrix_b = epsilon*np.array([[1, 0], [0, 1]])
-    if not partialp:
-        return -(np.max(np.abs(matrix_b * (q - p)))) ** 2
-    else:
-        if theta:
-            return 2 * (np.max(np.abs(matrix_b * (q - p)))) * np.sign(q[1] - p[1])
-        elif fan:
-            return 2 * (np.max(np.abs(matrix_b * (q - p)))) * np.sign(q[0] - p[0])
-        else:
-            # raise Exception("Parameter is not chosen. Please choose theta or phi ")
-            return 0
+    # q and p is a vector in spherical coordinate (outside -a~a and -b~b range)
+    # dist_max = 0.617783     # This is the maximum angle distance of pi/6 and pi/8
+    # eps1 = beta * exp(-alpha*dist_max**2) / (pi**2-dist_max**2)
+    eps1 = 0.07
+    # eps2 = eps1 * (pi**2 - dist_max**2)
+    eps2 = 0.70
+    prob = -eps1 * dist(q,p)**2 + eps2
+    return prob
+
+@jit(nopython=True)
+def checkInsideRange(q, p):
+    # Function to check whether q are within the range of p
+    cart_q = spher2cart(q)
+    cart_p = spher2cart(p) * radius
+    
+    # Get [x', y', z'] of point q
+    coef = np.dot(cart_p, cart_p) / np.dot(cart_p, cart_q)
+    posInPlane = coef * cart_q
+
+    # Get the v1 and v2 (where cart_q = v1*e_theta + v2*e_phi)
+    e_T = np.array([ [cos(q[0])*cos(q[1]), sin(q[1])*cos(q[0]), -sin(q[0])], [-sin(q[1]), cos(q[1]), 0] ])
+    v = np.dot(e_T, np.transpose(posInPlane - cart_p))
+
+    # Check whether v is within range
+    result = False
+    if(v[0]<=tan(a)*radius and v[0]>=tan(a)*radius and v[1]<=tan(b)*radius and v[1]>=tan(b)*radius):
+        result = True
+    return result
 
 @jit(nopython=True)
 def Perf(q, p):
     # q and p is a vector in spherical coordinate
-    if np.abs(q[0] - p[0]) > b or np.abs(q[1] - p[1]) > a:
-        return Perf1(q, p)
-    else:
+    if checkInsideRange(q, p):
         return Perf0(q, p)
+    else:
+        return Perf1(q, p)
 
 @jit(nopython=True)
 def PPerf(q, p, thetap=False, phip=False):
-    if np.abs(q[0] - p[0]) > b or np.abs(q[1] - p[1]) > a:
-        return Perf1(q, p, True, thetap, phip)
-    else:
+    if checkInsideRange(q, p):
         return Perf0(q, p, True, thetap, phip)
+    else:
+        return Perf1(q, p, True, thetap, phip)
 
 @jit(nopython=True)
 def H(p):
@@ -74,7 +89,9 @@ def H(p):
         randtheta = np.arccos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
         q = np.array([randtheta, randphi])
-        result += H_multiprocess(p,q)
+        add_elem = H_multiprocess(p,q)
+        # print("Added element is: ", add_elem)
+        result += add_elem
     ave = result * 1.0 / N
     result = area*ave
     return result
@@ -299,9 +316,9 @@ def cart2spher(points):
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
     theta = np.arccos(points[2]/rho)
     if points[1] >= 0:
-        phi = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))+pi/2
+        phi = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
     else:
-        phi = pi+np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))+pi/2
+        phi = pi+np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
     result = np.array([theta, phi])
     return result
 
@@ -309,8 +326,8 @@ def cart2spher(points):
 def spher2cart(points):
     """theta phi to x y z"""
     z=np.cos(points[0])
-    y=np.sin(points[0])*np.sin(points[1]-pi/2)
-    x=np.sin(points[0])*np.cos(points[1]-pi/2)
+    y=np.sin(points[0])*np.sin(points[1])
+    x=np.sin(points[0])*np.cos(points[1])
     result= np.array([x,y,z])
     return result
 
