@@ -15,9 +15,10 @@ rate = rospy.Rate(1)
 
 # initialization
 RADIUS = 100 # The radius of the detection area (a half-ball)
-droneArg = [[RADIUS, 0, 1.3, 1.0],
-            [RADIUS, 0.8, 1.0, 1.0],
-            [RADIUS, 1.7, 1.5, 1.0]]
+# DroneArg : [RADIUS, phi(pitch), theta(yaw), max_probability]
+droneArg = [[RADIUS, 1.0, -1.57, 1.0],
+            [RADIUS, 0.8, 0.0, 1.0],
+            [RADIUS, 0.5, 1.57, 1.0]]
 numofCamera = 4
 droneList = MarkerManager.addDrones(droneArg)
 markerManager = MarkerManager.MarkerManager(droneList, numofCamera)

@@ -1,5 +1,5 @@
 import rospy
-from math import pi, sqrt, cos, sin, tan, exp, acos
+from numpy import pi, sqrt, cos, sin, tan, exp
 import numpy as np
 import spherical_geometry.polygon as sg
 import multiprocessing
@@ -17,14 +17,14 @@ radius = 100
 DIST_THRESH = 5
 beta = 0.9
 alpha = 0.5
-PERF_COEF = 0.1
+PERF_COEF = 1.0
 
 @jit(nopython=True)
 def dist(q, p):
     # Calculate the distance between q and p by its angle in between. q and p are 2*1 vector representing [pitch, yaw]
     q_cart = spher2cart(q)
     p_cart = spher2cart(p)
-    return acos(np.dot(p_cart,q_cart))
+    return np.arccos(np.dot(p_cart,q_cart))
 
 @jit(nopython=True)
 def Perf0(q, p, partialp=False, theta=False, fan=False):
@@ -170,7 +170,7 @@ def H_multiprocess(p, q):
     for i in range(length):
         p_cart = spher2cart(p[i])
         q_cart = spher2cart(q)
-        dis = acos(np.dot(p_cart, q_cart))
+        dis = np.arccos(np.dot(p_cart, q_cart))
         if dis < min_pq:
             min_pq = dis
             min_i = i
@@ -197,7 +197,7 @@ def integral_surface(p,x_theta,x_phi,theta):
     length = len(p)
     for i in range(length):
         p_cart = radius * spher2cart(p[i])
-        dis = acos(np.dot(p_cart, q_cart)/(radius**2))
+        dis = np.arccos(np.dot(p_cart, q_cart)/(radius**2))
         if dis < min_pq:
             min_pq = dis
             min_i = i
@@ -289,7 +289,7 @@ def partialH_theta(p, poly_list, arc_list):
     """
     Parameters
     ----------
-    p       :   points spherical-coordinate (theta phi)  
+    p       :   points spherical-coordinate (phi theta)  
     poly_list:  a list of cartesian-coordinates points on the boundary of polygon  
     arc_list:   a list of arcs of FOV  
     Returns
@@ -323,7 +323,7 @@ def partialH_varphi(p, poly_list, arc_list):
     """
     Parameters
     ----------
-    p       :   points spherical-coordinate (theta phi)  
+    p       :   points spherical-coordinate (phi theta)  
     poly_list:  a list of cartesian-coordinates points on the boundary of voronoi polygon  
     arc_list:   a list of arcs of FOV  
     Returns
@@ -377,19 +377,19 @@ def controller(p, v_list, fov_list):
 # Copied from MarkerManager for the use of numba
 @jit(nopython=True)
 def cart2spher(points):
-    """x y z to theta phi"""
+    """[x y z] to [phi theta]"""
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
-    theta = np.arccos(points[2]/rho)
+    phi = np.arccos(points[2]/rho)
     if points[1] >= 0:
-        phi = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
+        theta = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
     else:
-        phi = pi+np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
-    result = np.array([theta, phi])
+        theta = - np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
+    result = np.array([phi, theta])
     return result
 
 @jit(nopython=True)
 def spher2cart(points):
-    """theta phi to x y z"""
+    """[phi, theta] to [x y z]"""
     z=np.cos(points[0])
     y=np.sin(points[0])*np.sin(points[1])
     x=np.sin(points[0])*np.cos(points[1])

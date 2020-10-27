@@ -12,33 +12,33 @@ import numpy as np
 RADIUS = 100
 
 class Drone:
-    """ The position and likelihood of drones, alpha is yaw and theta is pitch in a ball coordinate"""
-    def __init__(self, length, alpha, theta, probability):
+    """ The position and likelihood of drones, theta is yaw and phi is pitch in a ball coordinate"""
+    def __init__(self, length, phi, theta, probability):
         self.len = length
-        self.alpha = alpha
+        self.phi = phi
         self.theta = theta
         self.prob = probability
-
+  
     def calcDist(self, pose):
         """ Calculate the distance from this drone to the pose """
         if isinstance(pose,np.ndarray):
             dist = 0
-            dist += (self.len * sin(self.theta) - pose[2]) ** 2
-            dist += (self.len * cos(self.theta) * sin(self.alpha) - pose[1]) ** 2
-            dist += (self.len * cos(self.theta) * cos(self.alpha) - pose[0]) ** 2
+            dist += (self.len * cos(self.phi) - pose[2]) ** 2
+            dist += (self.len * sin(self.phi) * sin(self.theta) - pose[1]) ** 2
+            dist += (self.len * sin(self.phi) * cos(self.theta) - pose[0]) ** 2
             return sqrt(dist)
         elif isinstance(pose, Point):
             dist = 0
-            dist += (self.len * sin(self.theta) - pose.z) ** 2
-            dist += (self.len * cos(self.theta) * sin(self.alpha) - pose.y) ** 2
-            dist += (self.len * cos(self.theta) * cos(self.alpha) - pose.x) ** 2
+            dist += (self.len * cos(self.phi) - pose.z) ** 2
+            dist += (self.len * sin(self.phi) * sin(self.theta) - pose.y) ** 2
+            dist += (self.len * sin(self.phi) * cos(self.theta) - pose.x) ** 2
             return sqrt(dist)
         else:
             raise Exception("Data type of pose in calDist is wrong.")
 
 class Cameras:
     def __init__(self, numofCamera):
-        self.angles = np.zeros([4,2])    # A matrix : cam_num * 2
+        self.angles = np.zeros([numofCamera,2])    # A matrix : cam_num * 2
         self.radius = RADIUS * 0.8   # The range of the cone (length)
         self.field_of_view = 0.174  # in radian, pi/6
         self.num_cam = numofCamera
@@ -50,7 +50,7 @@ class Cameras:
             self.pubs[i] = rospy.Publisher(topic_name, Range, queue_size=10)
 
     def setAngle(self, cam_angle, i):
-        # Get the angels from Controller Manager in main.py
+        # Get the angels from Controller Manager in main.py [pitch, yaw]
         self.angles[i] = cam_angle    
 
     def pub_range(self):
@@ -146,7 +146,7 @@ class MarkerManager:
         self.setConstantArg()
         self.marker.scale.x = 2.0
         for drone in self.drones:
-            spher_pos = np.array([drone.theta,drone.alpha])
+            spher_pos = np.array([drone.phi,drone.theta])
             cart_pos = spher2cart(spher_pos) * drone.len
             pose = Point()
             pose.x = cart_pos[0]
@@ -160,26 +160,18 @@ class MarkerManager:
         self.pub.publish(self.marker)
 
 def cart2spher(points):
-    """x y z to theta phi"""
+    """[x, y, z] to [phi, theta]"""
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
-    theta = np.arccos(points[2]/rho)
-    if points[1] >= 0:
-        phi = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
-    else:
-        phi = pi+np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
-    result = np.array([theta, phi])
+    phi = np.arccos(points[2]/rho)
+    if points[1] >= 0:  # if y >= 0
+        theta = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
+    else:               # if y < 0
+        theta = - np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
+    result = np.array([phi, theta])
     return result
 
 def spher2cart(points):
-    """theta phi to x y z"""
-    z=np.cos(points[0])
-    y=np.sin(points[0])*np.sin(points[1])
-    x=np.sin(points[0])*np.cos(points[1])
-    result= np.array([x,y,z])
-    return result
-
-def spher2cart_nopi(points):
-    """theta phi to x y z"""
+    """[phi, theta] to [x, y, z]"""
     z=np.cos(points[0])
     y=np.sin(points[0])*np.sin(points[1])
     x=np.sin(points[0])*np.cos(points[1])
