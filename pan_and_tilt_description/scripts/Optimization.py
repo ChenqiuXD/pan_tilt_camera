@@ -28,7 +28,30 @@ def dist(q, p):
 @jit(nopython=True)
 def Perf0(q, p, partialp=False, theta=False, fan=False):
     # q and p is a vector in spherical coordinate (inside -a~a and -b~b range)
-    prob = beta * exp( -alpha * dist(q, p)**2 )
+    if not partialp:
+        prob = beta * exp( -alpha * dist(q, p)**2 )
+    else:
+        if theta:
+            dis = dist(q, p)
+            coef = -2 * alpha * beta * exp(-alpha * dis**2) * dis
+            
+            # Calculate the partial d(p,q) with respect to theta(p)
+            partial_dist_theta = calcPartialDist_theta(q, p)
+
+            # Calculate the partial of theta
+            prob = coef * partial_dist_theta
+        elif fan:
+            dis = dist(q, p)
+            coef = -2 * alpha * beta * exp(-alpha * dis**2) * dis
+            
+            # Calculate the partial d(p,q) with respect to fan(p)
+            partial_dist_fan = calcPartialDist_fan(q, p)
+
+            # Calculate the partial of theta
+            prob = coef * partial_dist_fan
+        else:
+            # raise Exception("Parameter is not chosen. Please choose theta or phi (from Perf0 function)")
+            prob = 0
     return prob
 
 @jit(nopython=True)
@@ -39,8 +62,49 @@ def Perf1(q, p, partialp=False, theta=False, fan=False):
     eps1 = 0.07
     # eps2 = eps1 * (pi**2 - dist_max**2)
     eps2 = 0.70
-    prob = -eps1 * dist(q,p)**2 + eps2
+    if not partialp:
+        prob = -eps1 * dist(q,p)**2 + eps2
+    else:
+        if theta:
+            dis = dist(q, p)
+            coef = -2*eps1*dis
+
+            # Calculate the partial d(p,q) with respect to theta(p)
+            partial_dist_theta = calcPartialDist_theta(q, p)
+
+            # Calculate the partial of theta
+            prob = coef * partial_dist_theta
+        elif fan:
+            dis = dist(q, p)
+            coef = -2*eps1*dis
+            
+            # Calculate the partial d(p,q) with respect to fan(p)
+            partial_dist_fan = calcPartialDist_fan(q, p)
+
+            # Calculate the partial of theta
+            prob = coef * partial_dist_fan
+        else:
+            # raise Exception("Parameter is not chosen. Please choose theta or phi (from Perf0 function)")
+            prob = 0
     return prob
+
+@jit(nopython=True)
+def calcPartialDist_theta(q, p):
+    # Calculate partial of dist(q,p) with repect to theta(p)
+    product_p_q = cos(q[1])*sin(q[0])*cos(p[1])*sin(p[0]) + sin(q[1])*sin(q[0])*sin(p[1])*sin(p[0]) + cos(q[0])*cos(p[0])
+    tmp = -1.0 / sqrt(1-product_p_q**2)
+    partial_product_theta = cos(q[1])*sin(q[0])*cos(p[1])*cos(p[0]) + sin(q[1])*sin(q[0])*sin(p[1])*cos(p[0]) - cos(q[0])*sin(p[0])
+    partial_dist_theta = tmp * partial_product_theta
+    return partial_dist_theta
+
+@jit(nopython=True)
+def calcPartialDist_fan(q, p):
+    # Calculate the partial d(p,q) with respect to fan(p)
+    product_p_q = cos(q[1])*sin(q[0])*cos(p[1])*sin(p[0]) + sin(q[1])*sin(q[0])*sin(p[1])*sin(p[0]) + cos(q[0])*cos(p[0])
+    tmp = -1.0 / sqrt(1-product_p_q**2)
+    partial_product_fan = cos(q[1])*sin(q[0])*(-sin(p[1]))*sin(p[0]) + sin(q[1])*sin(q[0])*cos(p[1])*sin(p[0])
+    partial_dist_fan = tmp * partial_product_fan
+    return partial_dist_fan
 
 @jit(nopython=True)
 def checkInsideRange(q, p):
