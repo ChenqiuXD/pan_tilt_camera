@@ -17,6 +17,7 @@ radius = 100
 DIST_THRESH = 5
 beta = 0.9
 alpha = 0.5
+PERF_COEF = 0.1
 
 @jit(nopython=True)
 def dist(q, p):
@@ -86,7 +87,7 @@ def Perf1(q, p, partialp=False, theta=False, fan=False):
         else:
             # raise Exception("Parameter is not chosen. Please choose theta or phi (from Perf0 function)")
             prob = 0
-    return prob
+    return prob * PERF_COEF
 
 @jit(nopython=True)
 def calcPartialDist_theta(q, p):

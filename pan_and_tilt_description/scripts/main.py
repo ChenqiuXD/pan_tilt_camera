@@ -43,7 +43,7 @@ while not rospy.is_shutdown():
         fov_list = []
         voro_list = []
         # get every camera state (points) and give control command
-        print("Getting camera state")
+        # print("Getting camera state")
         for i in range(numofCamera):
             # camera state
             state[i] = ctrlManager.getState(i)  # Get camera state
@@ -72,7 +72,7 @@ while not rospy.is_shutdown():
                 voro_list.append(voro_list_i)
 
         # Compute the derivation of objective function and control law
-        print("Controlling")
+        # print("Controlling")
         if (count>1):
             speeds = Optimization.controller(state, voro_list, fov_list)
             # speeds *= 10
@@ -92,6 +92,7 @@ while not rospy.is_shutdown():
         MarkerManager.adddisplay(points)
         H_value = Optimization.H(state)
         print("H_function:", H_value)
+        print("Count: ", count)
         
         # Write H value to test.txt file
         f.write(str(H_value))
