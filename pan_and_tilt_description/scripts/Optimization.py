@@ -377,13 +377,13 @@ def controller(p, v_list, fov_list):
 # Copied from MarkerManager for the use of numba
 @jit(nopython=True)
 def cart2spher(points):
-    """[x y z] to [phi theta]"""
+    """[x, y, z] to [phi, theta]. Note that phi is between [0, pi] and theta is between [0, 2*pi)"""
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
     phi = np.arccos(points[2]/rho)
-    if points[1] >= 0:
+    if points[1] >= 0:  # if y >= 0
         theta = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
-    else:
-        theta = - np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
+    else:               # if y < 0
+        theta = np.pi*2 - np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
     result = np.array([phi, theta])
     return result
 
@@ -407,16 +407,17 @@ def phi(q):
     the prob of drone occuring at q. With the drone occuring probability already known at certain place
     """
     RADIUS = 100
-    droneArg = [[RADIUS, 0, 1.3, 1.0],
-                [RADIUS, 0.8, 1.0, 1.0],
-                [RADIUS, 1.7, 1.5, 1.0]]
+    droneArg = [[RADIUS, 1.0, 4.71, 1.0],
+                [RADIUS, 0.8, 0.0, 1.0],
+                [RADIUS, 0.5, 1.57, 1.0]]
     prob = 0
     for drone in droneArg:
         # Calculate distance
+        # drone: [RADIUS, phi(pitch), theta(yaw), max_probability]
         dist = 0.0
-        dist += (drone[0] * sin(drone[2]) - q[2]) ** 2
-        dist += (drone[0] * cos(drone[2]) * sin(drone[1]) - q[1]) ** 2
-        dist += (drone[0] * cos(drone[2]) * cos(drone[1]) - q[0]) ** 2
+        dist += (drone[0] * cos(drone[1]) - q[2]) ** 2
+        dist += (drone[0] * sin(drone[1]) * sin(drone[2]) - q[1]) ** 2
+        dist += (drone[0] * sin(drone[1]) * cos(drone[2]) - q[0]) ** 2
         dist = sqrt(dist)
 
         # Add the probability by adding up the probability of each drone occuring at pose q

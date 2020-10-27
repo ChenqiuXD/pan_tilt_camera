@@ -16,7 +16,7 @@ rate = rospy.Rate(1)
 # initialization
 RADIUS = 100 # The radius of the detection area (a half-ball)
 # DroneArg : [RADIUS, phi(pitch), theta(yaw), max_probability]
-droneArg = [[RADIUS, 1.0, -1.57, 1.0],
+droneArg = [[RADIUS, 1.0, 4.71, 1.0],
             [RADIUS, 0.8, 0.0, 1.0],
             [RADIUS, 0.5, 1.57, 1.0]]
 numofCamera = 4
@@ -91,6 +91,8 @@ while not rospy.is_shutdown():
         center = np.array([0, 0, 0])
         sv = SphericalVoronoi(points, RADIUS, center)
         MarkerManager.adddisplay(points)
+
+        # Calculate the H function value
         H_value = Optimization.H(state)
         print("H_function:", H_value)
         print("Count: ", count)

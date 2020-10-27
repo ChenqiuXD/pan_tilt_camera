@@ -50,7 +50,7 @@ class ControllerManager:
         return state
 
     def stateSet(self ,id, state):
-        """ Set the id+1 th camera to state:theta,phi"""
+        """ Set the id+1 th camera to state: [phi, theta]"""
         state_m = self.getState(id)
         rate = rospy.Rate(100)
         k = 5

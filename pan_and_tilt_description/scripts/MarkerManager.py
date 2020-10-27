@@ -160,13 +160,13 @@ class MarkerManager:
         self.pub.publish(self.marker)
 
 def cart2spher(points):
-    """[x, y, z] to [phi, theta]"""
+    """[x, y, z] to [phi, theta]. Note that phi is between [0, pi] and theta is between [0, 2*pi)"""
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
     phi = np.arccos(points[2]/rho)
     if points[1] >= 0:  # if y >= 0
         theta = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
     else:               # if y < 0
-        theta = - np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
+        theta = 2*np.pi - np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
     result = np.array([phi, theta])
     return result
 
