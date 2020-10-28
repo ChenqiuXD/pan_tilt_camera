@@ -76,7 +76,7 @@ while not rospy.is_shutdown():
         # print("Controlling")
         if (count>1):
             speeds = Optimization.controller(state, voro_list, fov_list)
-            # speeds *= 10
+            # speeds *= 100
         # # Saturation of speed
         # if speeds[0] >= 5:
         #     speeds[0] = 5

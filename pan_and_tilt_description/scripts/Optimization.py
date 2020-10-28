@@ -314,10 +314,18 @@ def calcLineIntegral(u, v, N, p, arc_list, isTheta):
         p_i = spher2cart(p[j])
 
         # Calculate the normals
-        n_up = np.array([ -cos(p[j,0] - b)*cos(p[j,1]), -cos(p[j,0] - b)*sin(p[j,1]), sin(p[j,0]-b) ])
-        n_down = np.array([ cos(p[j,1])*cos(p[j,0]+b), sin(p[j,1])*cos(p[j,0+b]), sin(p[j,0]+b) ])
-        # n_left = 
-        # n_right = 
+        n_up = np.array([ -cos(p[j,0]-b) * cos(p[j,1]), -cos(p[j,0]-b) * sin(p[j,1]), sin(p[j,0]-b) ])
+        n_down = np.array([ cos(p[j,1]) * cos(p[j,0]+b), sin(p[j,1]) * cos(p[j,0]+b), sin(p[j,0]+b) ])
+        n_left = np.array( [
+            - sin(p[j,0])**2 * sin(p[j,1]+a) - cos(p[j,0])**2 * sin(p[j,1]), 
+            cos(p[j,0])**2 * cos(p[j,1]) + sin(p[j,0])**2 * cos(p[j,1]+a),
+            sin(p[j,0]) * cos(p[j,0]) * ( sin(p[j,1]) * cos(p[j,1]+a) - sin(p[j,1]+a) * cos(p[j,1]) )
+        ] )
+        n_right = np.array([
+            sin(p[j,0])**2 * sin(p[j,1]-a) + cos(p[j,0])**2 * sin(p[j,1]), 
+            - cos(p[j,0])**2 * cos(p[j,1]) - sin(p[j,0])**2 * cos(p[j,1]-a),
+            sin(p[j,0]) * cos(p[j,0]) * ( sin(p[j,1]-a) * cos(p[j,1]) - sin(p[j,1]) * cos(p[j,1]-a) )
+        ])
 
         # Calculate every point
         for i in range(M):
@@ -379,7 +387,7 @@ def partialH_theta(p, poly_list, arc_list):
     ave_s = calcSurfaceIntegral(u, v, N, p, isTheta=True)
 
     # line integral
-    ave_l, length, k = calcLineIntegral(u, v, N, p, arc_list)
+    # ave_l, length, k = calcLineIntegral(u, v, N, p, arc_list)
 
     #result = ave_s * poly_area + k * ave_l * length
     result = ave_s * poly_area
@@ -415,7 +423,7 @@ def partialH_varphi(p, poly_list, arc_list):
     ave_s = calcSurfaceIntegral(u, v, N, p, isTheta=False)
 
     # line integral
-    ave_l, length, k = calcLineIntegral(u, v, N, p, arc_list)
+    # ave_l, length, k = calcLineIntegral(u, v, N, p, arc_list)
     
     #result = ave_s * poly_area + k * ave_l * length
     result = ave_s * poly_area
