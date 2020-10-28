@@ -3,8 +3,8 @@ from math import pi, sqrt, cos, sin, tan, exp, acos
 import numpy as np
 import spherical_geometry.polygon as sg
 import multiprocessing
-from src.pan_and_tilt_description.scripts import MarkerManager
-#import MarkerManager
+# from src.pan_and_tilt_description.scripts import MarkerManager
+import MarkerManager
 
 # GPU related module
 from numba import jit
@@ -26,6 +26,11 @@ def dist(q, p):
     p_cart = spher2cart(p)
     return acos(np.dot(p_cart, q_cart)/np.dot(p_cart, p_cart))
 
+@jit(nopython=True)
+def dist_cart_q(q, p):
+    # Calculate the distance when q is in cartesian coordinate and p is in shperical cooridnate
+    q_spher = cart2spher(q)
+    dist(q_spher, p)
 
 @jit(nopython=True)
 def Perf0(q, p, partialp=False, theta=False, fan=False):
@@ -121,7 +126,7 @@ def checkInsideRange(q, p):
     # Function to check whether q are within the range of p
     cart_q = spher2cart(q)
     cart_p = spher2cart(p)
-
+    
     # Get [x', y', z'] of point q
     coef = np.dot(cart_p, cart_p) / np.dot(cart_p, cart_q)
     posInPlane = coef * cart_q
@@ -163,7 +168,7 @@ def H(p):
     # Compute the average of function and the area of sphere
     result = 0
     for i in range(N):
-        randtheta = np.arccos(2 * v[i] - 1)
+        randtheta = acos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
         q = np.array([randtheta, randphi])
         add_elem = H_multiprocess(p, q)
@@ -244,21 +249,21 @@ def calcSurfaceIntegral(u, v, N, p, isTheta):
     """
     Parameters
     ----------
-    u       :   random numbers from 0-1, len = N
-    v       :   random numbers from 0.5-1, len = N
-    N       :   length of random numbers. Number of Monte Carlo sampling points
-    p       :   each value represents a angle of joint. cam_num*2 matrix
-    isTheta :   True for calculating partial for theta, False for phi
+    u       :   random numbers from 0-1, len = N   
+    v       :   random numbers from 0.5-1, len = N  
+    N       :   length of random numbers. Number of Monte Carlo sampling points  
+    p       :   each value represents a angle of joint. cam_num*2 matrix  
+    isTheta :   True for calculating partial for theta, False for phi  
     Returns
     -------
-    Surface integral calculated by Monte Carlo methods with total N sampling points
-    ave_s : float
+    Surface integral calculated by Monte Carlo methods with total N sampling points  
+    ave_s : float  
     """
     num_cam = len(p)
     count = np.zeros(shape=(num_cam, 1))
     sum = np.zeros(shape=(num_cam, 1))
     for i in range(N):
-        randtheta = np.arccos(2 * v[i] - 1)
+        randtheta = acos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
         first_term, min_i = integral_surface(p, randtheta, randphi, isTheta)
         count[min_i] += 1
@@ -268,52 +273,90 @@ def calcSurfaceIntegral(u, v, N, p, isTheta):
 
 
 @jit(nopython=True)
-def calcLineIntegral(u, v, N, p, arc_list):
+def calcLineIntegral(u, v, N, p, arc_list, isTheta):
     """
     Parameters
     ----------
-    u       :   random numbers from 0-1, len = N
-    v       :   random numbers from 0.5-1, len = N
-    N       :   length of random numbers. Number of Monte Carlo sampling points
-    p       :   each value represents a angle of joint. cam_num*2 matrix
-    arc_list:   the four points of camera in the sphere coordinate (represents in angles). cam_num*4 matrix
+    u       :   random numbers from 0-1, len = N   
+    v       :   random numbers from 0.5-1, len = N  
+    N       :   length of random numbers. Number of Monte Carlo sampling points  
+    p       :   each value represents a angle of joint. cam_num*2 matrix  
+    arc_list:   the four points of camera in the sphere coordinate (represents in angles). cam_num*4 matrix  
     Returns
     -------
-    Line integral calculated by Monte Carlo methods with totally N/4 sampling points
-    ave_l : 4*1 vector
-    length : 4*1 vector
-    k : 4*1 vector
+    Line integral calculated by Monte Carlo methods with totally N/4 sampling points  
+    ave_l : 4*1 vector  
+    length : 4*1 vector   
+    k : 4*1 vector  
     """
     M = int(N / 4)
     num_cam = len(p)
+
     l_phi = np.zeros(shape=(num_cam, M))
     ave_l = np.zeros(shape=(num_cam, 1))
     length = np.zeros(shape=(num_cam, 1))
     k = np.zeros(shape=(num_cam, 1))
     result_lin = []
 
-    for j in range(num_cam):
-        mint = min(arc_list[j][:, 0])
-        maxt = max(arc_list[j][:, 0])
-        length[j] = 2 * (max(arc_list[j][:, 1]) - min(arc_list[j][:, 1]))
-        l_phi[j] = np.random.uniform(min(arc_list[j][:, 1]), max(arc_list[j][:, 1]), M)
-        for i in range(M):
-            q_l_1 = spher2cart(np.array([mint, l_phi[j][i]]))
-            q_l_2 = spher2cart(np.array([maxt, l_phi[j][i]]))
-            result_lin.append(integral_line_theta(q_l_1, q_l_2))
-        ave_l[j] = average_2d(result_lin)
-        k[j] = Perf0(np.array([maxt, p[j, 1]]), p[j]) - Perf1(np.array([maxt, p[j, 1]]), p[j])  # f1-f2
+    # First calculate the length
+    tmp = sqrt(1.0 + tan(b)**2 + tan(a)**2)  
+    len_1 = 2 * np.arcsin(tan(a) / tmp) * radius  # Longer arc length
+    len_2 = 2 * np.arcsin(tan(b) / tmp) * radius  # Shorter arc length
 
+    for j in range(num_cam):
+        # Calculate the e_theta and e_phi (p[j,0]->theta(pitch), p[j,1]->phi(yaw))
+        e_theta = np.array([cos(p[j, 0])*cos(p[j, 1]), cos(p[j, 0])*sin(p[j, 1]), -sin(p[j, 0])])
+        e_phi = np.array([-sin(p[j, 1]), cos(p[j, 1]), 0])
+
+        # Calculate the sample points
+        tmp1 = np.random.uniform(-pi/6, pi/6, M)
+        tmp2 = np.random.uniform(-pi/8, pi/8, M)
+        p_i = spher2cart(p[j])
+
+        # Calculate the normals
+        n_up = np.array([ -cos(p[j,0] - b)*cos(p[j,1]), -cos(p[j,0] - b)*sin(p[j,1]), sin(p[j,0]-b) ])
+        n_down = np.array([ cos(p[j,1])*cos(p[j,0]+b), sin(p[j,1])*cos(p[j,0+b]), sin(p[j,0]+b) ])
+        # n_left = 
+        # n_right = 
+
+        # Calculate every point
+        for i in range(M):
+            if isTheta: # Partial with respect to theta
+                # Sample four points repectively on the four lines
+                q_theta_max = p_i + ( tan(pi/8) * e_theta + tan(tmp1(i)) * e_phi ) * radius
+                q_theta_min = p_i + ( tan(-pi/8) * e_theta + tan(tmp1(i)) * e_phi ) * radius
+                q_phi_max = p_i + ( tan(tmp2(i)) * e_theta + tan(pi/6) * e_phi ) * radius
+                q_phi_min = p_i + ( tan(tmp2(i)) * e_theta + tan(-pi/6) * e_phi ) * radius
+
+                # Calculate the parital gamma with repect to theta_i
+                # partial_gamma_theta = -sin(d(p_i, gamma))*v_1*p_i + cos(d(p_i, gamma))*e_theta
+                dist = dist_cart_q(q_theta_max, p[j])
+                parital_gamma_theta_0 = -sin(dist)*tan(pi/8)*p_i + cos(dist)*e_theta
+                dist = dist_cart_q(q_theta_min, p[j])
+                parital_gamma_theta_1 = -sin(dist)*tan(-pi/8)*p_i + cos(dist)*e_theta
+                dist = dist_cart_q(q_phi_max, p[j])
+                parital_gamma_theta_2 = -sin(dist)*tan(tmp2(i))*p_i + cos(dist)*e_theta
+                dist = dist_cart_q(q_phi_min, p[j])
+                parital_gamma_theta_3 = -sin(dist)*tan(tmp2(i))*p_i + cos(dist)*e_theta
+
+                # q_l_1 = spher2cart(np.array([mint, l_phi[j][i]]))
+                # q_l_2 = spher2cart(np.array([maxt, l_phi[j][i]]))
+                # result_lin.append(integral_line_theta(q_l_1, q_l_2))
+            else:   # Partial with respect to phi
+                # Sample four points
+                pass
+        # ave_l[j] = average_2d(result_lin)
+        # k[j] = Perf0(np.array([maxt, p[j, 1]]), p[j]) - Perf1(np.array([maxt, p[j, 1]]), p[j])  # f1-f2
+    
     return ave_l, length, k
 
-# @jit(nopython=True)
 def partialH_theta(p, poly_list, arc_list):
     """
     Parameters
     ----------
     p       :   points spherical-coordinate (theta phi)
-    poly_list:  a list of cartesian-coordinates points on the boundary of polygon
-    arc_list:   a list of arcs of FOV
+    poly_list:  a list of cartesian-coordinates points on the boundary of polygon  
+    arc_list:   a list of arcs of FOV  
     Returns
     -------
     the partial of objective function
@@ -322,7 +365,7 @@ def partialH_theta(p, poly_list, arc_list):
     N = 60000
     u = np.random.uniform(0, 1, N)
     v = np.random.uniform(1 / 2, 1, N)
-
+    
     # Calculate poly_area
     num_cam = len(p)
     polygon = []
@@ -342,18 +385,17 @@ def partialH_theta(p, poly_list, arc_list):
     result = ave_s * poly_area
     return result
 
-# @jit(nopython=True)
 def partialH_varphi(p, poly_list, arc_list):
     """
     Parameters
     ----------
     p       :   points spherical-coordinate (theta phi)
-    poly_list:  a list of cartesian-coordinates points on the boundary of voronoi polygon
-    arc_list:   a list of arcs of FOV
+    poly_list:  a list of cartesian-coordinates points on the boundary of voronoi polygon  
+    arc_list:   a list of arcs of FOV  
     Returns
     -------
     the partial of objective function
-    result: 4*1 vector
+    result: 4*1 vector  
     """
     # monto carlo method to solve the surface integral
     N = 60000
@@ -374,7 +416,7 @@ def partialH_varphi(p, poly_list, arc_list):
 
     # line integral
     ave_l, length, k = calcLineIntegral(u, v, N, p, arc_list)
-
+    
     #result = ave_s * poly_area + k * ave_l * length
     result = ave_s * poly_area
     return result
@@ -406,11 +448,11 @@ def controller(p, v_list, fov_list):
 def cart2spher(points):
     """x y z to theta phi"""
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
-    theta = np.arccos(points[2] / rho)
+    theta = acos(points[2] / rho)
     if points[1] >= 0:
-        phi = np.arccos(points[0] / np.sqrt(points[0] ** 2 + points[1] ** 2))
+        phi = acos(points[0] / np.sqrt(points[0] ** 2 + points[1] ** 2))
     else:
-        phi = pi + np.arccos(points[0] / np.sqrt(points[0] ** 2 + points[1] ** 2))
+        phi = pi + acos(points[0] / np.sqrt(points[0] ** 2 + points[1] ** 2))
     result = np.array([theta, phi])
     return result
 
