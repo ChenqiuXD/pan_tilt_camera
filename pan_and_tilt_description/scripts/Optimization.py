@@ -138,7 +138,8 @@ def checkInsideRange(q, p):
     # Check whether v is within range
     result = False
     if (v[0] <= tan(a) * radius and v[0] >= -tan(a) * radius and v[1] <= tan(b) * radius and v[1] >= -tan(b) * radius):
-        result = True
+        if coef > 0 :   # Eliminate the possibility when dist(q,p) > pi/2 (yet u and v could be small after projection onto the plane)
+            result = True
     return result
 
 
@@ -167,16 +168,21 @@ def H(p):
     v = np.random.uniform(1 / 2, 1, N)
     # Compute the average of function and the area of sphere
     result = 0
+    result_T = 0
     for i in range(N):
         randtheta = acos(2 * v[i] - 1)
         randphi = 2 * pi * u[i]
         q = np.array([randtheta, randphi])
         add_elem = H_multiprocess(p, q)
+        add_elem_T = H_multiprocess_T(p, q)
         # print("Added element is: ", add_elem)
         result += add_elem
+        result_T += add_elem_T
     ave = result * 1.0 / N
     result = area * ave
-    return result
+    ave = result_T * 1.0 / N
+    result_T = area * ave
+    return result, result_T
 
 
 @jit(nopython=True)
@@ -196,9 +202,27 @@ def H_multiprocess(p, q):
     # Compute the performance function and phi
     p_min = p[min_i]
     perf = Perf(q, p_min)
+    # print("In H_multiprocess, the value is: ", perf)
     q_cart = spher2cart(q)
     detect_phi = phi(q_cart)
     result = perf * detect_phi
+    return result
+
+@jit(nopython=True)
+def H_multiprocess_T(p, q):
+    # Find the maximum of Perf
+    length = len(p)
+    maxPerf = 0.0
+    for i in range(length):
+        perf = Perf(q, p[i])
+        # print("In H_multiprocess_T, No", i, "th value is: ", perf)
+        if perf >= maxPerf:
+            maxPerf = perf
+
+    # Compute phi and return result
+    q_cart = spher2cart(q)
+    detect_phi = phi(q_cart)
+    result = maxPerf * detect_phi
     return result
 
 
@@ -490,7 +514,9 @@ def phi(q):
                 [RADIUS, 0.8, 1.0, 1.0],
                 [RADIUS, 1.7, 1.5, 1.0]]
     prob = 0
-    for drone in droneArg:
+    coef = [0.5, 0.6, 0.8]
+    for i in range(len(droneArg)):
+        drone = droneArg[i]
         # Calculate distance
         dist = 0.0
         dist += (drone[0] * sin(drone[2]) - q[2]) ** 2
@@ -499,10 +525,7 @@ def phi(q):
         dist = sqrt(dist)
 
         # Add the probability by adding up the probability of each drone occuring at pose q
-        if (dist < DIST_THRESH):
-            prob += drone[3] * np.exp(-dist)
-        else:
-            continue
+        prob += drone[3] * np.exp(-coef[i] * dist**2)
     return prob
 
 

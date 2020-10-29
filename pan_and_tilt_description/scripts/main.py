@@ -93,8 +93,9 @@ while not rospy.is_shutdown():
         MarkerManager.adddisplay(points)
 
         # Calculate the H function value
-        H_value = Optimization.H(state)
-        print("H_function:", H_value)
+        H_value, H_value_T = Optimization.H(state)
+        print("H_function:   ", H_value)
+        print("H_function_T: ", H_value_T)
         print("Count: ", count)
         
         # Write H value to test.txt file
