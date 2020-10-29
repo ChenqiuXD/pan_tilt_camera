@@ -2,12 +2,12 @@
 import rospy
 import numpy as np
 
-# from src.pan_and_tilt_description.scripts import ControllerManager
-# from src.pan_and_tilt_description.scripts import MarkerManager
-# from src.pan_and_tilt_description.scripts import Optimization
-import ControllerManager
-import MarkerManager
-import Optimization
+from src.pan_and_tilt_description.scripts import ControllerManager
+from src.pan_and_tilt_description.scripts import MarkerManager
+from src.pan_and_tilt_description.scripts import Optimization
+# import ControllerManager
+# import MarkerManager
+# import Optimization
 from scipy.spatial import SphericalVoronoi
 
 rospy.init_node("main")
@@ -15,10 +15,9 @@ rate = rospy.Rate(1)
 
 # initialization
 RADIUS = 100 # The radius of the detection area (a half-ball)
-# DroneArg : [RADIUS, phi(pitch), theta(yaw), max_probability]
 droneArg = [[RADIUS, 0, 1.3, 1.0],
-            [RADIUS, 0.8, 1.0, 1.0],
-            [RADIUS, 1.7, 1.5, 1.0]]
+            [RADIUS, 2.1, 1.0, 1.0],
+            [RADIUS, 4.2, 1.5, 1.0]]
 numofCamera = 4
 droneList = MarkerManager.addDrones(droneArg)
 markerManager = MarkerManager.MarkerManager(droneList, numofCamera)
@@ -44,7 +43,7 @@ while not rospy.is_shutdown():
         fov_list = []
         voro_list = []
         # get every camera state (points) and give control command
-        # print("Getting camera state")
+        print("Getting camera state")
         for i in range(numofCamera):
             # camera state
             state[i] = ctrlManager.getState(i)  # Get camera state
@@ -57,13 +56,13 @@ while not rospy.is_shutdown():
             # camera fov state
             if (count > 1):
                 # fov_list are four points representing the four corners of camera image (in sphere coordinate)
-                fov_list.append(np.array(
-                                    # pi/6 is the "horizontal_fov" written in the body.xacro (robot model)
-                                    # The first element is horizontal, the second is vertical
-                                    [[+ np.pi / 6 + state[i][1], np.pi / 6 * (640/480) + state[i][0]],
-                                     [- np.pi / 6 + state[i][1], np.pi / 6 * (640/480) + state[i][0]],
-                                     [- np.pi / 6 + state[i][1], - np.pi / 6 * (640/480) + state[i][0]],
-                                     [+ np.pi / 6 + state[i][1], - np.pi / 6 * (640/480) + state[i][0]]]))  
+                # fov_list.append(np.array(
+                #                     # pi/6 is the "horizontal_fov" written in the body.xacro (robot model)
+                #                     # The first element is horizontal, the second is vertical
+                #                     [[np.pi / 6 + state[i][1], np.pi / 6 * (640/480) + state[i][0]],
+                #                      [-np.pi / 6 + state[i][1], np.pi / 6 * (640/480) + state[i][0]],
+                #                      [-np.pi / 6 + state[i][1], -np.pi / 6 * (640/480) + state[i][0]],
+                #                      [np.pi / 6 + state[i][1], -np.pi / 6 * (640/480) + state[i][0]]]))
 
                 # compute ith camera Voronoi region (represented by lines)
                 voro_list_i = np.random.rand(0, 3)
@@ -73,10 +72,12 @@ while not rospy.is_shutdown():
                 voro_list.append(voro_list_i)
 
         # Compute the derivation of objective function and control law
-        # print("Controlling")
+        print("Controlling")
         if (count>1):
-            speeds = Optimization.controller(state, voro_list, fov_list)
-            # speeds *= 100
+            speeds = 30*Optimization.controller(state, voro_list, fov_list)
+            print(speeds)
+            # speeds *= 10
+            # print("speeds are: \n", speeds)
         # # Saturation of speed
         # if speeds[0] >= 5:
         #     speeds[0] = 5
@@ -91,21 +92,14 @@ while not rospy.is_shutdown():
         center = np.array([0, 0, 0])
         sv = SphericalVoronoi(points, RADIUS, center)
         MarkerManager.adddisplay(points)
-
-        # Calculate the H function value
-        H_value, H_value_T = Optimization.H(state)
-        print("H_function:   ", H_value)
-        print("H_function_T: ", H_value_T)
-        print("Count: ", count)
+        H_value = Optimization.H(state)
+        print("H_function:", H_value)
         
         # Write H value to test.txt file
         f.write(str(H_value))
-        f.write(', ')
+        f.write('\n ')
 
         rate.sleep()
     except rospy.exceptions.ROSInterruptException:
         f.close()
         rospy.logwarn("ROS Interrupt Exception, trying to shut down node")
-
-if(count >= 400):
-    f.close()

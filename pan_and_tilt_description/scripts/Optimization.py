@@ -31,7 +31,8 @@ def dist(q, p):
 def dist_cart_q(q, p):
     # Calculate the distance when q is in cartesian coordinate and p is in shperical cooridnate
     q_spher = cart2spher(q)
-    dist(q_spher, p)
+    result = dist(q_spher, p)
+    return result
 
 
 @jit(nopython=True)
@@ -318,7 +319,7 @@ def calcLineIntegral(N, p, isTheta):
     length : 4*1 vector
     k : 4*1 vector
     """
-    M = int(N / 4)
+    M = int(N / 40)
     num_cam = len(p)
 
     l_phi = np.zeros(shape=(num_cam, M))
@@ -329,8 +330,8 @@ def calcLineIntegral(N, p, isTheta):
     result_lin_short = []
     # First calculate the length
     tmp = sqrt(1.0 + tan(b) ** 2 + tan(a) ** 2)
-    len_1 = 2 * np.arcsin(tan(a) / tmp) * radius  # Longer arc length
-    len_2 = 2 * np.arcsin(tan(b) / tmp) * radius  # Shorter arc length
+    len_1 = 2 * np.arcsin(tan(a) / tmp)   # Longer arc length
+    len_2 = 2 * np.arcsin(tan(b) / tmp)   # Shorter arc length
 
     for j in range(num_cam):
         # Calculate the e_theta and e_phi (p[j,0]->theta(pitch), p[j,1]->phi(yaw))
@@ -359,10 +360,10 @@ def calcLineIntegral(N, p, isTheta):
         # Calculate every point
         for i in range(M):
             # Sample four points repectively on the four lines
-            q_theta_down = p_i + (tan(b) * e_theta + tan(tmp1(i)) * e_phi) * radius
-            q_theta_up = p_i + (tan(-b) * e_theta + tan(tmp1(i)) * e_phi) * radius
-            q_phi_left = p_i + (tan(tmp2(i)) * e_theta + tan(a) * e_phi) * radius
-            q_phi_right = p_i + (tan(tmp2(i)) * e_theta + tan(-a) * e_phi) * radius
+            q_theta_down = p_i + (tan(b) * e_theta + tan(tmp1[i]) * e_phi) * radius
+            q_theta_up = p_i + (tan(-b) * e_theta + tan(tmp1[i]) * e_phi) * radius
+            q_phi_left = p_i + (tan(tmp2[i]) * e_theta + tan(a) * e_phi) * radius
+            q_phi_right = p_i + (tan(tmp2[i]) * e_theta + tan(-a) * e_phi) * radius
             q_down_sphere = cart2spher(q_theta_down)
             q_down = spher2cart(q_down_sphere)
             q_up_sphere = cart2spher(q_theta_up)
@@ -379,9 +380,9 @@ def calcLineIntegral(N, p, isTheta):
                 dist = dist_cart_q(q_theta_up, p[j])
                 parital_gamma_theta_1 = -sin(dist) * tan(-pi / 8) * p_i/radius + cos(dist) * e_theta
                 dist = dist_cart_q(q_phi_left, p[j])
-                parital_gamma_theta_2 = -sin(dist) * tan(tmp2(i)) * p_i/radius + cos(dist) * e_theta
+                parital_gamma_theta_2 = -sin(dist) * tan(tmp2[i]) * p_i/radius + cos(dist) * e_theta
                 dist = dist_cart_q(q_phi_right, p[j])
-                parital_gamma_theta_3 = -sin(dist) * tan(tmp2(i)) * p_i/radius + cos(dist) * e_theta
+                parital_gamma_theta_3 = -sin(dist) * tan(tmp2[i]) * p_i/radius + cos(dist) * e_theta
                 result_down = np.dot(parital_gamma_theta_0,n_down)*(Perf0(q_down_sphere,p[j])-Perf1(q_down_sphere,p[j]))*phi(q_down)
                 result_up = np.dot(parital_gamma_theta_1, n_up) * (
                             Perf0(q_up_sphere, p[j]) - Perf1(q_up_sphere, p[j])) * phi(q_up)
@@ -401,13 +402,13 @@ def calcLineIntegral(N, p, isTheta):
                 # Calculate the partial gamma with respect to varphi_i
                 # partial_gamma_theta = -sin(d(p_i, gamma))*v_1*p_i + cos(d(p_i, gamma))*e_theta
                 dist = dist_cart_q(q_theta_down, p[j])
-                parital_gamma_varphi_0 = sin(dist) * (tan(pi/8)*cos(p[j,0])*e_phi+tan(tmp1(i))*temp) + sin(p[j,0])*cos(dist) * e_phi
+                parital_gamma_varphi_0 = sin(dist) * (tan(pi/8)*cos(p[j,0])*e_phi+tan(tmp1[i])*temp) + sin(p[j,0])*cos(dist) * e_phi
                 dist = dist_cart_q(q_theta_up, p[j])
-                parital_gamma_varphi_1 = sin(dist) * (tan(-pi/8)*cos(p[j,0])*e_phi+tan(tmp1(i))*temp) + sin(p[j,0])*cos(dist) * e_phi
+                parital_gamma_varphi_1 = sin(dist) * (tan(-pi/8)*cos(p[j,0])*e_phi+tan(tmp1[i])*temp) + sin(p[j,0])*cos(dist) * e_phi
                 dist = dist_cart_q(q_phi_left, p[j])
-                parital_gamma_varphi_2 = sin(dist) * (tan(tmp2(i))*cos(p[j,0])*e_phi+tan(pi/6)*temp) + sin(p[j,0])*cos(dist) * e_phi
+                parital_gamma_varphi_2 = sin(dist) * (tan(tmp2[i])*cos(p[j,0])*e_phi+tan(pi/6)*temp) + sin(p[j,0])*cos(dist) * e_phi
                 dist = dist_cart_q(q_phi_right, p[j])
-                parital_gamma_varphi_3 = sin(dist) * (tan(tmp2(i))*cos(p[j,0])*e_phi+tan(-pi/6)*temp) + sin(p[j,0])*cos(dist) * e_phi
+                parital_gamma_varphi_3 = sin(dist) * (tan(tmp2[i])*cos(p[j,0])*e_phi+tan(-pi/6)*temp) + sin(p[j,0])*cos(dist) * e_phi
                 result_down = np.dot(parital_gamma_varphi_0, n_down) * (
                             Perf0(q_down_sphere, p[j]) - Perf1(q_down_sphere, p[j])) * phi(q_down)
                 result_up = np.dot(parital_gamma_varphi_1, n_up) * (
@@ -420,8 +421,7 @@ def calcLineIntegral(N, p, isTheta):
                 result_lin_long.append(result_up)
                 result_lin_short.append(result_left)
                 result_lin_short.append(result_right)
-                pass
-            result_l[j] = average_2d(result_lin_long)*len_1+average_2d(result_lin_short)*len_2
+            result_l[j] = 2*average_1d(result_lin_long)*len_1+2*average_1d(result_lin_short)*len_2
         # k[j] = Perf0(np.array([maxt, p[j, 1]]), p[j]) - Perf1(np.array([maxt, p[j, 1]]), p[j])  # f1-f2
 
     return result_l
@@ -494,8 +494,8 @@ def partialH_varphi(p, poly_list, arc_list):
 
     # line integral
     line_s = calcLineIntegral(N, p, isTheta=False)
-
     result = ave_s * poly_area + line_s
+    print("partialH_varphi",line_s, result)
     # result = ave_s * poly_area
     return result
 
@@ -557,17 +557,17 @@ def phi(q):
     """
     RADIUS = 100
     droneArg = [[RADIUS, 0, 1.3, 1.0],
-                [RADIUS, 0.8, 1.0, 1.0],
-                [RADIUS, 1.7, 1.5, 1.0]]
+                [RADIUS, 2.1, 1.0, 1.0],
+                [RADIUS, 4.2, 1.5, 1.0]]
     prob = 0
-    coef = [0.5, 0.6, 0.8]
+    coef = [0.005, 0.005, 0.008]
     for i in range(len(droneArg)):
         drone = droneArg[i]
         # Calculate distance
         dist = 0.0
-        dist += (drone[0] * sin(drone[2]) - q[2]) ** 2
-        dist += (drone[0] * cos(drone[2]) * sin(drone[1]) - q[1]) ** 2
-        dist += (drone[0] * cos(drone[2]) * cos(drone[1]) - q[0]) ** 2
+        dist += (drone[0] * cos(drone[1]) - q[2]) ** 2
+        dist += (drone[0] * sin(drone[1]) * sin(drone[2]) - q[1]) ** 2
+        dist += (drone[0] * sin(drone[1]) * cos(drone[2]) - q[0]) ** 2
         dist = sqrt(dist)
 
         # Add the probability by adding up the probability of each drone occuring at pose q
@@ -585,4 +585,12 @@ def average_2d(array):
             count += 1
     return sum / count
 
+@jit(nopython=True)
+def average_1d(array):
+    sum = 0.0
+    count = 0.0
+    for i in array:
+        sum += i
+        count += 1
+    return sum / count
 
