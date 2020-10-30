@@ -14,25 +14,25 @@ RADIUS = 100
 
 class Drone:
     """ The position and likelihood of drones, alpha is yaw and theta is pitch in a ball coordinate"""
-    def __init__(self, length, theta, alpha,probability):
+    def __init__(self, length, theta, phi ,probability):
         self.len = length
-        self.alpha = alpha
         self.theta = theta
+        self.phi = phi
         self.prob = probability
 
     def calcDist(self, pose):
         """ Calculate the distance from this drone to the pose """
         if isinstance(pose,np.ndarray):
             dist = 0
-            dist += (self.len * sin(self.theta) - pose[2]) ** 2
-            dist += (self.len * cos(self.theta) * sin(self.alpha) - pose[1]) ** 2
-            dist += (self.len * cos(self.theta) * cos(self.alpha) - pose[0]) ** 2
+            dist += (self.len * cos(self.theta) - pose[2]) ** 2
+            dist += (self.len * sin(self.theta) * sin(self.phi) - pose[1]) ** 2
+            dist += (self.len * sin(self.theta) * cos(self.phi) - pose[0]) ** 2
             return sqrt(dist)
         elif isinstance(pose, Point):
             dist = 0
-            dist += (self.len * sin(self.theta) - pose.z) ** 2
-            dist += (self.len * cos(self.theta) * sin(self.alpha) - pose.y) ** 2
-            dist += (self.len * cos(self.theta) * cos(self.alpha) - pose.x) ** 2
+            dist += (self.len * cos(self.theta) - pose.z) ** 2
+            dist += (self.len * sin(self.theta) * sin(self.phi) - pose.y) ** 2
+            dist += (self.len * sin(self.theta) * cos(self.phi) - pose.x) ** 2
             return sqrt(dist)
         else:
             raise Exception("Data type of pose in calDist is wrong.")
@@ -74,7 +74,7 @@ class MarkerManager:
         self.pub = rospy.Publisher("visualization_marker", Marker, queue_size=10)
         self.marker = Marker()
         self.RADIUS = RADIUS
-        self.GAP = 0.25     # The distance between two nearby points.
+        self.GAP = 0.5     # The distance between two nearby points.
         self.COEF = 100.0   # Used only for range function which only accept int
         self.DIST_THRESH = 20
         self.cameras = Cameras(numofCamera)
@@ -86,9 +86,9 @@ class MarkerManager:
         self.marker.type = self.marker.POINTS
         self.marker.action = self.marker.ADD
         self.marker.id = 0
-        self.marker.scale.x = 0.05
-        self.marker.scale.y = 0.05
-        self.marker.scale.z = 0.05
+        self.marker.scale.x = 0.2
+        self.marker.scale.y = 0.2
+        self.marker.scale.z = 0.2
 
     def calcPose(self, h, arcLen, perimeter, radius):
         pose = Point()
@@ -101,32 +101,38 @@ class MarkerManager:
     def calcColor(self, pose):
         """ Calculate the color according to the pose with respect to drones """
         color = ColorRGBA()
-        colorCoef = 0.3
         if len(self.drones):
             prob = self.calcProb(pose)
             if (prob):
                 # color.r = self.calcProb(pose) * (1 - colorCoef) + colorCoef
-                color.r = 0
+                color.g = 1 - self.calcProb(pose) 
+                color.b = 1 - self.calcProb(pose) 
                 color.a = 1
             else:
-                color.r = colorCoef
+                # color.r = colorCoef
+                color.g = 1.0
+                color.b = 1.0
                 color.a = 0.3
         else:
-            color.r = colorCoef
+            color.r = 1.0
             color.a = 0.3
-        color.b = 0.3
-        color.g = 0.3
-        if(color.r >= 0.8):
-            print("at pose ", pose.x, " ", pose.y, " ", pose.z)
+        color.r = 1.0
+        # color.b = 1.0
+        # color.g = 1.0
+        if(color.r <= 0.2):
+            print("at pose ", pose.x, " ", pose.y, " ", pose.z, " color.r is: ", color.r)
         return color
 
     def calcProb(self, pose):
         """ Calculate the probability of drone occuring in pose """
         prob = 0
-        for drone in self.drones:
+        coef = [0.02, 0.02, 0.02]
+        for i in range(len(self.drones)):
+            drone = self.drones[i]
             dist = drone.calcDist(pose)
-            if dist < self.DIST_THRESH:
-                prob = drone.prob * exp(-dist/self.DIST_THRESH)+prob
+            prob += drone.prob * exp(-coef[i] * dist ** 2)
+            # if dist < self.DIST_THRESH:
+                # prob = drone.prob * exp(-dist/self.DIST_THRESH)+prob
         return prob
 
     def display(self):
@@ -138,14 +144,17 @@ class MarkerManager:
         # random.seed()
         for h in heights:
             # The radius of the circle of certain height
-            radius = sqrt(self.RADIUS * self.RADIUS - h * h)
+            radius = sqrt(self.RADIUS ** 2 - h * h)
             perimeter = 2 * pi * radius
             arcLens = (i / self.COEF for i in range(0, int(perimeter * self.COEF), int(self.GAP * self.COEF)))
             for arcLen in arcLens:
                 pose = self.calcPose(h, arcLen, perimeter, radius)
-                self.marker.points.append(pose)
                 color = self.calcColor(pose)
+                # if color.r > 0.3:
                 self.marker.colors.append(color)
+                self.marker.points.append(pose)
+                # else:
+                #     continue
 
         self.pub.publish(self.marker)
 
@@ -153,9 +162,9 @@ class MarkerManager:
         """ The display function is too time-consuming, therefore a easy_display is adapted which only display
         the red points """
         self.setConstantArg()
-        self.marker.scale.x = 2.0
+        # self.marker.scale.x = 2.0
         for drone in self.drones:
-            spher_pos = np.array([drone.theta,drone.alpha])
+            spher_pos = np.array([drone.theta,drone.phi])
             cart_pos = spher2cart(spher_pos) * drone.len
             pose = Point()
             pose.x = cart_pos[0]
@@ -188,20 +197,12 @@ def spher2cart(points):
     result= np.array([x,y,z])
     return result
 
-def spher2cart_nopi(points):
-    """theta phi to x y z"""
-    z=np.cos(points[0])
-    y=np.sin(points[0])*np.sin(points[1])
-    x=np.sin(points[0])*np.cos(points[1])
-    result= np.array([x,y,z])
-    return result
-
 def addDrones(droneArg):
     """droneList: radius,phi,theta,prob"""
     droneList = []
     if len(droneArg):
         for drone in droneArg:
-            droneList.append(Drone(drone[0], drone[1], drone[2], drone[3])) # add drone:radius,phi,theta,prob
+            droneList.append(Drone(drone[0], drone[1], drone[2], drone[3])) # add drone:radius,theta,phi,prob
     else:
         rospy.logerr("No drone in the droneArg, please recheck your addDrones function")
     return droneList

@@ -18,9 +18,6 @@ RADIUS = 100 # The radius of the detection area (a half-ball)
 droneArg = [[RADIUS, 1.3, 0, 1.0],
                 [RADIUS, 1.0, 2.1, 1.0],
                 [RADIUS, 1.5, 4.1, 1.0]]
-# droneArg = [[RADIUS, 1.3, 0, 1.0]]
-#                 # [RADIUS, 2.1, 1.0, 1.0],
-#                 # [RADIUS, 4.2, 1.5, 1.0]]
 numofCamera = 4
 droneList = MarkerManager.addDrones(droneArg)
 markerManager = MarkerManager.MarkerManager(droneList, numofCamera)
@@ -32,7 +29,7 @@ rospy.sleep(0.1)
 # Draw the half-ball and red area (which represent the probability of drones occuring there)
 print("MarkerManager display the half-ball")
 markerManager.display()
-# markerManager.easy_display()    # A simplified version which only display the red points
+markerManager.easy_display()    # A simplified version which only display the red points
 print("Start main loop")
 # 'test.txt' file is used to store the H values
 f = open('test.txt', 'w')
