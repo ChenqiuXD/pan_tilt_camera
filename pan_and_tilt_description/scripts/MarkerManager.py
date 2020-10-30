@@ -11,34 +11,36 @@ import numpy as np
 
 RADIUS = 100
 
+
 class Drone:
-    """ The position and likelihood of drones, theta is yaw and phi is pitch in a ball coordinate"""
-    def __init__(self, length, phi, theta, probability):
+    """ The position and likelihood of drones, alpha is yaw and theta is pitch in a ball coordinate"""
+    def __init__(self, length, theta, alpha,probability):
         self.len = length
-        self.phi = phi
+        self.alpha = alpha
         self.theta = theta
         self.prob = probability
-  
+
     def calcDist(self, pose):
         """ Calculate the distance from this drone to the pose """
         if isinstance(pose,np.ndarray):
             dist = 0
-            dist += (self.len * cos(self.phi) - pose[2]) ** 2
-            dist += (self.len * sin(self.phi) * sin(self.theta) - pose[1]) ** 2
-            dist += (self.len * sin(self.phi) * cos(self.theta) - pose[0]) ** 2
+            dist += (self.len * sin(self.theta) - pose[2]) ** 2
+            dist += (self.len * cos(self.theta) * sin(self.alpha) - pose[1]) ** 2
+            dist += (self.len * cos(self.theta) * cos(self.alpha) - pose[0]) ** 2
             return sqrt(dist)
         elif isinstance(pose, Point):
             dist = 0
-            dist += (self.len * cos(self.phi) - pose.z) ** 2
-            dist += (self.len * sin(self.phi) * sin(self.theta) - pose.y) ** 2
-            dist += (self.len * sin(self.phi) * cos(self.theta) - pose.x) ** 2
+            dist += (self.len * sin(self.theta) - pose.z) ** 2
+            dist += (self.len * cos(self.theta) * sin(self.alpha) - pose.y) ** 2
+            dist += (self.len * cos(self.theta) * cos(self.alpha) - pose.x) ** 2
             return sqrt(dist)
         else:
             raise Exception("Data type of pose in calDist is wrong.")
 
+
 class Cameras:
     def __init__(self, numofCamera):
-        self.angles = np.zeros([numofCamera,2])    # A matrix : cam_num * 2
+        self.angles = np.zeros([4,2])    # A matrix : cam_num * 2
         self.radius = RADIUS * 0.8   # The range of the cone (length)
         self.field_of_view = 0.174  # in radian, pi/6
         self.num_cam = numofCamera
@@ -50,7 +52,7 @@ class Cameras:
             self.pubs[i] = rospy.Publisher(topic_name, Range, queue_size=10)
 
     def setAngle(self, cam_angle, i):
-        # Get the angels from Controller Manager in main.py [pitch, yaw]
+        # Get the angels from Controller Manager in main.py
         self.angles[i] = cam_angle    
 
     def pub_range(self):
@@ -65,15 +67,16 @@ class Cameras:
             rang_msg.range = self.radius
             self.pubs[i].publish(rang_msg)
 
+
 class MarkerManager:
     """Manage the half-ball markers to show different possibility of seeing droens. """
     def __init__(self, droneList, numofCamera):
         self.pub = rospy.Publisher("visualization_marker", Marker, queue_size=10)
         self.marker = Marker()
         self.RADIUS = RADIUS
-        self.GAP = 0.05
-        self.COEF = 100.0
-        self.DIST_THRESH = 5
+        self.GAP = 0.25     # The distance between two nearby points.
+        self.COEF = 100.0   # Used only for range function which only accept int
+        self.DIST_THRESH = 20
         self.cameras = Cameras(numofCamera)
         self.drones = droneList
 
@@ -83,9 +86,9 @@ class MarkerManager:
         self.marker.type = self.marker.POINTS
         self.marker.action = self.marker.ADD
         self.marker.id = 0
-        self.marker.scale.x = 0.015
-        self.marker.scale.y = 0.015
-        self.marker.scale.z = 0.015
+        self.marker.scale.x = 0.05
+        self.marker.scale.y = 0.05
+        self.marker.scale.z = 0.05
 
     def calcPose(self, h, arcLen, perimeter, radius):
         pose = Point()
@@ -102,14 +105,19 @@ class MarkerManager:
         if len(self.drones):
             prob = self.calcProb(pose)
             if (prob):
-                color.r = self.calcProb(pose) * (1 - colorCoef) + colorCoef
+                # color.r = self.calcProb(pose) * (1 - colorCoef) + colorCoef
+                color.r = 0
+                color.a = 1
             else:
                 color.r = colorCoef
+                color.a = 0.3
         else:
             color.r = colorCoef
+            color.a = 0.3
         color.b = 0.3
         color.g = 0.3
-        color.a = 1
+        if(color.r >= 0.8):
+            print("at pose ", pose.x, " ", pose.y, " ", pose.z)
         return color
 
     def calcProb(self, pose):
@@ -118,13 +126,14 @@ class MarkerManager:
         for drone in self.drones:
             dist = drone.calcDist(pose)
             if dist < self.DIST_THRESH:
-                prob = drone.prob * exp(-dist)+prob
+                prob = drone.prob * exp(-dist/self.DIST_THRESH)+prob
         return prob
 
     def display(self):
         """ Draw a half-ball according to drones list """
         self.setConstantArg()
 
+        # Because function 'range' only accept int, therefore COEF is multiplied.
         heights = (i/self.COEF for i in range(0, int(self.RADIUS*self.COEF), int(self.GAP*self.COEF)))
         # random.seed()
         for h in heights:
@@ -146,7 +155,7 @@ class MarkerManager:
         self.setConstantArg()
         self.marker.scale.x = 2.0
         for drone in self.drones:
-            spher_pos = np.array([drone.phi,drone.theta])
+            spher_pos = np.array([drone.theta,drone.alpha])
             cart_pos = spher2cart(spher_pos) * drone.len
             pose = Point()
             pose.x = cart_pos[0]
@@ -159,19 +168,28 @@ class MarkerManager:
             self.marker.colors.append(color)
         self.pub.publish(self.marker)
 
+
 def cart2spher(points):
-    """[x, y, z] to [phi, theta]. Note that phi is between [0, pi] and theta is between [0, 2*pi)"""
+    """x y z to theta phi"""
     rho = np.sqrt(points[0] ** 2 + points[1] ** 2 + points[2] ** 2)
-    phi = np.arccos(points[2]/rho)
-    if points[1] >= 0:  # if y >= 0
-        theta = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
-    else:               # if y < 0
-        theta = 2*np.pi - np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
-    result = np.array([phi, theta])
+    theta = np.arccos(points[2]/rho)
+    if points[1] >= 0:
+        phi = np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
+    else:
+        phi = pi+np.arccos(points[0]/np.sqrt(points[0] ** 2 + points[1] ** 2))
+    result = np.array([theta, phi])
     return result
 
 def spher2cart(points):
-    """[phi, theta] to [x, y, z]"""
+    """theta phi to x y z"""
+    z=np.cos(points[0])
+    y=np.sin(points[0])*np.sin(points[1])
+    x=np.sin(points[0])*np.cos(points[1])
+    result= np.array([x,y,z])
+    return result
+
+def spher2cart_nopi(points):
+    """theta phi to x y z"""
     z=np.cos(points[0])
     y=np.sin(points[0])*np.sin(points[1])
     x=np.sin(points[0])*np.cos(points[1])

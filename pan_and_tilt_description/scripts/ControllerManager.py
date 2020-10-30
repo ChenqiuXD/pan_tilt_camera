@@ -50,7 +50,7 @@ class ControllerManager:
         return state
 
     def stateSet(self ,id, state):
-        """ Set the id+1 th camera to state: [phi, theta]"""
+        """ Set the id+1 th camera to state:theta,phi"""
         state_m = self.getState(id)
         rate = rospy.Rate(100)
         k = 5
@@ -101,7 +101,7 @@ if __name__ == "__main__":
             # Test getState function
             id = 0
             print("Getting ", id, "State")
-            ctrlManager.manipulate([0.2, -0.2], id)
+            ctrlManager.manipulate([-0.01, 0], id)
             state = ctrlManager.getState(id)
             print(state)
             rate.sleep()

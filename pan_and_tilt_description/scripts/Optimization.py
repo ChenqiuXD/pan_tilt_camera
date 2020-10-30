@@ -70,9 +70,9 @@ def Perf1(q, p, partialp=False, theta=False, fan=False):
     # q and p is a vector in spherical coordinate (outside -a~a and -b~b range)
     # dist_max = 0.617783     # This is the maximum angle distance of pi/6 and pi/8
     # eps1 = beta * exp(-alpha*dist_max**2) / (pi**2-dist_max**2)
-    eps1 = 0.007
+    eps1 = 0.07
     # eps2 = eps1 * (pi**2 - dist_max**2)
-    eps2 = 0.070
+    eps2 = 0.70
     if not partialp:
         prob = -eps1 * dist(q, p) ** 2 + eps2
     else:
@@ -322,10 +322,7 @@ def calcLineIntegral(N, p, isTheta):
     M = int(N / 40)
     num_cam = len(p)
 
-    l_phi = np.zeros(shape=(num_cam, M))
     result_l = np.zeros(shape=(num_cam, 1))
-    length = np.zeros(shape=(num_cam, 1))
-    k = np.zeros(shape=(num_cam, 1))
     result_lin_long = []
     result_lin_short = []
     # First calculate the length
@@ -459,7 +456,7 @@ def partialH_theta(p, poly_list, arc_list):
     line_s = calcLineIntegral(N, p, isTheta=True)
 
     result = ave_s * poly_area + line_s
-    #result = ave_s * poly_area
+    # result = ave_s * poly_area
     return result
 
 
@@ -495,7 +492,7 @@ def partialH_varphi(p, poly_list, arc_list):
     # line integral
     line_s = calcLineIntegral(N, p, isTheta=False)
     result = ave_s * poly_area + line_s
-    print("partialH_varphi",line_s, result)
+    # print("partialH_varphi",line_s, result)
     # result = ave_s * poly_area
     return result
 
@@ -515,9 +512,9 @@ def controller(p, v_list, fov_list):
     a = np.zeros(shape=(len(p), 1))
     for i in range(len(p)):
         a[i] = 1.0 / sin(p[i, 0])
-    angle_r_pitch = a * partialH_varphi(p, v_list, fov_list)
-    angle_r_yaw = partialH_theta(p, v_list, fov_list)
-    angle_r = np.append(angle_r_pitch, angle_r_yaw, axis=1)
+    angle_r_theta = partialH_theta(p, v_list, fov_list)
+    angle_r_phi = a * partialH_varphi(p, v_list, fov_list)
+    angle_r = np.append(angle_r_theta, angle_r_phi, axis=1)
     return angle_r
 
 
@@ -556,11 +553,15 @@ def phi(q):
     the prob of drone occuring at q. With the drone occuring probability already known at certain place
     """
     RADIUS = 100
-    droneArg = [[RADIUS, 0, 1.3, 1.0],
-                [RADIUS, 2.1, 1.0, 1.0],
-                [RADIUS, 4.2, 1.5, 1.0]]
+    droneArg = [[RADIUS, 1.3, 0, 1.0],
+                [RADIUS, 1.0, 2.1, 1.0],
+                [RADIUS, 1.5, 4.1, 1.0]]
+    # droneArg = [[RADIUS, 1.3, 0, 1.0]]
+    #             # [RADIUS, 2.1, 1.0, 1.0],
+    #             # [RADIUS, 4.2, 1.5, 1.0]]
     prob = 0
-    coef = [0.005, 0.005, 0.008]
+    coef = [0.05, 0.05, 0.05]
+    # coef = [0.003]
     for i in range(len(droneArg)):
         drone = droneArg[i]
         # Calculate distance
