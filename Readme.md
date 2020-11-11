@@ -49,10 +49,10 @@ In real-world applications, it can be used to detect air vehicle invasion. In pa
 We programmatically create a PT-camera Gazebo model which can move in the horizontal direction or vertical direction. The camera has a 60-degree FOV  horizontally and every image frame has 680×480 pixels. There are four cameras in total, placed 1.5m apart from each other located on the roof of a building.
  
 They are required to cover a half of sphere (airspace) with the radius being 100m. We set a prior event distribution function over this sphere as
-![Alt text](https://latex.codecogs.com/svg.latex?\Large&space;\phi(q)=\sum_{i=1}^m\exp({-D_i\|q-o_i\|^2}))
+![Alt text](https://latex.codecogs.com/svg.latex?\phi(q)=\sum_{i=1}^m\exp({-D_i\|q-o_i\|^2}))
 
 where m is the number of regions that are apt to be invaded by air vehicles with high possibilities, $o_i$ represents the spot centered at each region $i$, and $D_i$ is a pre-defined distribution decay coefficient. Particularly, in our experiment we set $m=3$, and for each $o_i$ the parameters are  explicitly given as follows:
-![Alt text](https://latex.codecogs.com/svg.latex?\Large&space;o_1=[-42.5,~72.6,~54.0]^\top,D_1=0.05,o_2=[26.7,~96.4,~0]^\top,D_2=0.05,o_3=[-57.3,~-81.6,~7.1]^\top,D_3=0.05.)
+![Alt text](https://latex.codecogs.com/svg.latex?o_1=[-42.5,~72.6,~54.0]^\top,D_1=0.05,o_2=[26.7,~96.4,~0]^\top,D_2=0.05,o_3=[-57.3,~-81.6,~7.1]^\top,D_3=0.05.)
 
 We use Monte-Carlo integration to calculate the integral calculations. The details to calculate the gradient on the sphere are reminded in our paper. 
 
