@@ -1,11 +1,6 @@
-# A pan-tilt camera  
+# A pan-tilt camera networks 
 ## Overview  
-A pan and tilt camera used in gazebo. The robot is controlled by ROS's controller manager by pid methods. To examine the robot model, please read the 'robot' file and check out pan_and_tilt.xacro. Currently the joint is controlled directly by gazebo by changing velocity.   
-You can run the main.py or Manager.py to see the optimization algorithm.  
-If you wish to change drones' position, please change all the droneArg parameters in the following files:  
-Optimization.py line 328  
-main.py	line 19  
-Manager.py line 64  
+A pan and tilt camera networks used in gazebo. The robot is controlled by ROS's controller manager by pid methods. To examine the robot model, please read the 'robot' file and check out pan_and_tilt.xacro. Currently the joint is controlled directly by gazebo by changing velocity.   
 
 ## Prequisite
 Please copy the 'heatmap' and 'background' models to your gazebo local model database.  
@@ -45,8 +40,27 @@ The overall scene is:
 A camera's view:  
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/camera_view.png)  
 
-You can see two robots in rviz:  
+You can see four robots in rviz:  
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/overall_pic.png)  
+
+##Simulation setup
+In real-world applications, it can be used to detect air vehicle invasion. In particular, we will introduce the configuration of the PT-camera model programmed by ourselves, our experiment setting, and the numerical implementation of our optimization algorithm. 
+ 
+We programmatically create a PT-camera Gazebo model which can move in the horizontal direction or vertical direction. The camera has a 60-degree FOV  horizontally and every image frame has 680×480 pixels. There are four cameras in total, placed 1.5m apart from each other located on the roof of a building.
+ 
+They are required to cover a half of sphere (airspace) with the radius being 100m. We set a prior event distribution function over this sphere as
+$$
+		\phi(q) = \sum_{i=1}^m \exp({-D_i\|q-o_i\|^2})
+$$ 
+where m is the number of regions that are apt to be invaded by air vehicles with high possibilities, $o_i$ represents the spot centered at each region $i$, and $D_i$ is a pre-defined distribution decay coefficient. Particularly, in our experiment we set $m=3$, and for each $o_i$ the parameters are  explicitly given as follows:
+$o_1=[-42.5,~72.6,~54.0]^\top, ~D_1=0.05,~o_2=[26.7,~96.4,~0]^\top, D_2=0.05, o_3=[-57.3,~-81.6,~7.1]^\top, ~D_3=0.05.$
+
+We use Monte-Carlo integration to calculate the integral calculations. The details to calculate the gradient on the sphere are reminded in our paper. 
+
+The results of our simulations are shown in Fig.~\ref{fig:simulation_convergence_result} and Fig.~\ref{fig:simulation setup}. Fig.~\ref{fig:simulation_convergence_result} depicts the evolution of the utility $h$ and aggregate utility $h_\mathcal{V}$ as the orientations of the cameras get updated iteratively following Algorithm~\ref{algorithm:coverage control}. It illustrates the monotonic ascent of both the utilities.  Note that in our simulation cameras' images have no overlap and that the value of $h$ matches with that of $h_{\mathcal V}$ at different configuration $\mathcal P$'s. Fig~\ref{fig:simulation setup} depicts three snapshots of the camera network coverage cells. It indicates that eventually the cameras will point to the neighborhood of the red regions, of which the event distribution is higher.
+
+Note that if you want to change the event distribution on this sphere, you must modify "" in  optimization.py and main.py.
+
 
 ## Helpful reference:
 When launching multiple robots, try following sample:  
