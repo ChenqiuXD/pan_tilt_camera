@@ -56,13 +56,11 @@ where m is the number of regions that are apt to be invaded by air vehicles with
 
 We use Monte-Carlo integration to calculate the integral calculations. The details to calculate the gradient on the sphere are reminded in our paper. 
 
-The results of our simulations are shown in Fig.~\ref{fig:simulation_convergence_result} and Fig.~\ref{fig:simulation setup}. 
+The results of our simulations are shown:
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/beginning.png) 
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/timing.png) 
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/ending.png) 
-Fig.~\ref{fig:simulation_convergence_result} depicts the evolution of the utility $h$ and aggregate utility $h_\mathcal{V}$ as the orientations of the cameras get updated iteratively following Algorithm~\ref{algorithm:coverage control}. It illustrates the monotonic ascent of both the utilities.  Note that in our simulation cameras' images have no overlap and that the value of $h$ matches with that of $h_{\mathcal V}$ at different configuration $\mathcal P$'s. Fig~\ref{fig:simulation setup} depicts three snapshots of the camera network coverage cells. It indicates that eventually the cameras will point to the neighborhood of the red regions, of which the event distribution is higher.
-
-Note that if you want to change the event distribution on this sphere, you must modify "" in  optimization.py and main.py.
+This depict three snapshots of the camera network coverage cells. It indicates that eventually the cameras will point to the neighborhood of the red regions, of which the event distribution is higher. When you update the event distribution, camera networks will update their attitudes as well. Note that if you want to change the event distribution on this sphere, you must modify "" in  optimization.py and main.py.
 
 
 ## Helpful reference:
