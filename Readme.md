@@ -61,7 +61,7 @@ The results of our simulations are shown:
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/timing.png) 
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/ending.png) 
 ![Alt text](https://github.com/ChenqiuXD/pan_tilt_camera/blob/master/pics/ending_1.png)
-This depict three snapshots of the camera network coverage cells. It indicates that eventually the cameras will point to the neighborhood of the red regions, of which the event distribution is higher. When you update the event distribution, camera networks will update their attitudes as well. Note that if you want to change the event distribution on this sphere, you must modify "droneArg" in Optimization.py and main.py.
+This depict three snapshots of the camera network coverage cells. It indicates that eventually the cameras will point to the neighborhood of the red regions, of which the event distribution is higher. When you change the event distribution, camera networks will update their attitudes as well. Note that if you want to change the event distribution on this sphere, you must modify "droneArg" in Optimization.py and main.py.
 
 
 ## Helpful reference:
