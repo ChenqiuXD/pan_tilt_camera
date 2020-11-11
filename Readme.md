@@ -49,7 +49,7 @@ In real-world applications, it can be used to detect air vehicle invasion. In pa
 We programmatically create a PT-camera Gazebo model which can move in the horizontal direction or vertical direction. The camera has a 60-degree FOV  horizontally and every image frame has 680×480 pixels. There are four cameras in total, placed 1.5m apart from each other located on the roof of a building.
  
 They are required to cover a half of sphere (airspace) with the radius being 100m. We set a prior event distribution function over this sphere as
-![Alt text](https://latex.codecogs.com/svg.latex?\Large&space;x=\frac{-b\pm\sqrt{b^2-4ac}}{2a})
+![Alt text](https://latex.codecogs.com/svg.latex?\Large&space;\phi(q) = \sum_{i=1}^m \exp({-D_i\|q-o_i\|^2}))
 
 $$
 \phi(q) = \sum_{i=1}^m \exp({-D_i\|q-o_i\|^2})
